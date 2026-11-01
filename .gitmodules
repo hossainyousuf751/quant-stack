@@ -1,0 +1,15 @@
+[submodule "projects/sp-pricer"]
+	path = projects/sp-pricer
+	url = https://github.com/hossainyousuf751/sp-pricer.git
+[submodule "projects/volsurface"]
+	path = projects/volsurface
+	url = https://github.com/hossainyousuf751/volsurface.git
+[submodule "projects/backtest-lab"]
+	path = projects/backtest-lab
+	url = https://github.com/hossainyousuf751/backtest-lab.git
+[submodule "projects/microstructure-lab"]
+	path = projects/microstructure-lab
+	url = https://github.com/hossainyousuf751/microstructure-lab.git
+[submodule "projects/risk-lab"]
+	path = projects/risk-lab
+	url = https://github.com/hossainyousuf751/risk-lab.git

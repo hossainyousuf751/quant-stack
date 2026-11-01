@@ -1,0 +1,14 @@
+# Old standalone checkouts, superseded by projects/ submodules (remove once no longer locked)
+/sp-pricer/
+/volsurface/
+/backtest-lab/
+/microstructure-lab/
+/risk-lab/
+
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+data/
+graphify-out/

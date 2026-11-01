@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantstack"
+version = "0.1.0"
+description = "A connected quantitative finance research stack: structured product pricing, volatility surfaces, honest backtesting, market microstructure and risk, linked into end-to-end studies."
+license = "MIT"
+requires-python = ">=3.10"
+# The five libraries are installed from projects/ (git submodules) before this package; see README.
+dependencies = ["sppricer", "volsurface", "btlab", "lobkit", "risklab"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "matplotlib>=3.7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: long-running integration test, excluded by default"]
+addopts = "-m 'not slow'"

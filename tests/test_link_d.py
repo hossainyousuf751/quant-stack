@@ -29,6 +29,8 @@ def test_per_asset_calibration_gives_per_asset_vol_and_adv():
     model = cost_model_from_book({"A": CAL, "B": other}, 60, capital=1e6)
     assert list(model.adv.index) == ["A", "B"] and model.adv["B"] == pytest.approx(4 * model.adv["A"])
     assert model.half_spread_bps == 1.5
+    assert cost_model_from_book({"A": CAL, "B": other}, 60, capital=1e6, fee_bps=10).half_spread_bps == 11.5
+    assert cost_model_from_book(CAL, 60, capital=1e6, fee_bps=10).half_spread_bps == 10.5
     assert model.impact_coef == pytest.approx(np.mean([impact_coefficient(CAL), impact_coefficient(other)]))
 
 

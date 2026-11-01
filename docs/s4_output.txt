@@ -1,0 +1,82 @@
+=== Cost calibration (calibrate_costs; Y matched to the 10 s OFI impact at mean top-of-book depth)
+                        simulator     BTCUSDT     ETHUSDT
+half_spread_bps           0.49645 0.000644696   0.0221675
+ofi_impact_beta          0.284657    0.204248 0.000850392
+ofi_impact_r2            0.659892    0.654184    0.775133
+mean_depth                2.13377     2.48285     31.5431
+trade_size_mean                 1   0.0120169    0.293835
+trade_size_median               1     0.00052      0.0069
+trade_size_p95                  1    0.026443    0.690775
+volume_per_sec            1.88383   0.0308211    0.577061
+trades_per_sec            1.88383     2.56481      1.9639
+mid_price                 10086.5       77556     2255.62
+mid_vol_per_sqrt_sec  9.72957e-05 1.67821e-05 3.18954e-05
+impact Y (calibrated)    0.581545   0.0434106   0.0504298
+
+=== Daily crypto momentum, 8 coins, 2018-01-01 to 2025-12-30, weekly rebalance, lag 1 day
+Calibrated costs use the BTCUSDT recording's spread, vol and volume for every coin; altcoin books are thinner, so this flatters them.
+                Sharpe flat 5 bp  Sharpe calibrated Y  Sharpe Y = 1  Sharpe calibrated + 10 bp fee  cost/yr flat  cost/yr calibrated Y  cost/yr Y = 1
+capital                                                                                                                                              
+1000000.0000              0.3941               0.4122        0.4090                         0.3756        0.0036                0.0000         0.0007
+10000000.0000             0.3941               0.4119        0.4017                         0.3753        0.0036                0.0001         0.0021
+100000000.0000            0.3941               0.4109        0.3787                         0.3743        0.0036                0.0003         0.0066
+
+=== Intraday BTCUSDT: 7,200 one-second bars; same-second OFI impact R^2 0.593
+look-ahead check (ofi, features rebuilt from truncated quotes): passed=True
+look-ahead check (imbalance, features rebuilt from truncated quotes): passed=True
+                        gross SR (ann.)  gross bp/bar  trades/hour  break-even fee (bp)  net SR, book walk $1,000  book walk $1,000 bp/bar  net SR, book walk $100,000  book walk $100,000 bp/bar  net SR, fee 0 bp  spread+impact bp/bar  net SR, fee 10 bp
+variant                                                                                                                                                                                                                                                     
+ofi > 0.0, lag 1                136.439         0.003     1958.272                0.003                    35.804                    0.002                   -2197.891                      0.103         -2153.273                 0.063          -5713.828
+ofi > 0.25, lag 1               138.691         0.002      822.614                0.008                    90.772                    0.001                    -903.308                      0.020          -686.834                 0.012          -2913.298
+ofi > 1.0, lag 1                155.073         0.002      415.558                0.015                   112.413                    0.000                    -625.902                      0.012          -321.780                 0.006          -1999.312
+imbalance > 0.0, lag 1          563.180         0.014      147.020                0.281                   552.945                    0.000                     246.818                      0.007           416.592                 0.003           -870.190
+imbalance > 0.2, lag 1          566.153         0.013      232.032                0.236                   557.305                    0.000                     322.319                      0.005           432.720                 0.003          -1200.237
+imbalance > 0.4, lag 1          547.572         0.010      233.032                0.175                   540.246                    0.000                     158.010                      0.007           389.283                 0.003          -1330.839
+ofi > 0.0, lag 2                158.878         0.004     1954.543                0.004                    55.336                    0.002                   -2246.698                      0.103         -2227.415                 0.063          -5716.851
+ofi > 0.25, lag 2               171.852         0.002      818.727                0.007                   102.762                    0.001                   -1074.507                      0.020          -989.635                 0.012          -2916.099
+ofi > 1.0, lag 2                255.298         0.002      413.615                0.014                   180.974                    0.000                    -795.546                      0.011          -589.100                 0.006          -2000.693
+imbalance > 0.0, lag 2          512.981         0.013      147.541                0.256                   505.424                    0.000                     215.641                      0.007           369.096                 0.003           -873.307
+imbalance > 0.2, lag 2          545.093         0.012      231.064                0.213                   535.658                    0.000                     304.359                      0.005           404.948                 0.003          -1204.909
+imbalance > 0.4, lag 2          470.985         0.008      229.064                0.149                   458.095                    0.000                      99.940                      0.006           313.709                 0.003          -1336.457
+ofi > 0.0, lag 5                 64.718         0.002     1946.352                0.002                   -36.683                    0.002                   -2283.914                      0.104         -2313.374                 0.063          -5719.003
+ofi > 0.25, lag 5                 9.410         0.000      817.067                0.000                   -42.100                    0.000                   -1166.957                      0.020         -1169.546                 0.012          -2917.987
+ofi > 1.0, lag 5                  7.563         0.000      413.287                0.000                   -37.870                    0.000                    -894.112                      0.011          -811.795                 0.006          -2001.765
+imbalance > 0.0, lag 5          399.146         0.010      141.098                0.200                   394.686                    0.000                     128.223                      0.006           258.829                 0.003           -879.004
+imbalance > 0.2, lag 5          487.855         0.010      222.154                0.185                   481.665                    0.000                     252.095                      0.005           346.311                 0.003          -1210.666
+imbalance > 0.4, lag 5          386.082         0.007      222.154                0.119                   380.598                    0.000                      36.236                      0.006           226.103                 0.003          -1341.592
+Best variant before fees: imbalance > 0.2, lag 1. Deflated Sharpe over all 18 variants 0.000; within the 9 imbalance variants 1.000
+Half-spread at the close of bars where imbalance > 0.2, lag 1 trades: 0.00064 bp, vs 0.00064 bp median: the spread is not wider when the signal trades
+imbalance > 0.2, lag 1: in the market 83% of bars; on bars where the mid moves, right 90% of the time; captures 61% of the mid's total absolute path (152.2 bp over 2.0 h)
+Walk-forward (30 min train, 15 min test, lag 1 bar, spread + impact, no fee): out-of-sample net SR 419.30, mean 0.0106 bp/bar
+
+=== Intraday ETHUSDT: 7,199 one-second bars; same-second OFI impact R^2 0.699
+look-ahead check (ofi, features rebuilt from truncated quotes): passed=True
+look-ahead check (imbalance, features rebuilt from truncated quotes): passed=True
+                        gross SR (ann.)  gross bp/bar  trades/hour  break-even fee (bp)  net SR, book walk $1,000  book walk $1,000 bp/bar  net SR, book walk $100,000  book walk $100,000 bp/bar  net SR, fee 0 bp  spread+impact bp/bar  net SR, fee 10 bp
+variant                                                                                                                                                                                                                                                     
+ofi > 0.0, lag 1                393.280         0.018     2148.097                0.019                  -163.024                    0.026                   -2897.589                      0.269         -2943.393                 0.200          -5949.194
+ofi > 0.25, lag 1               447.194         0.013     1131.314                0.037                   101.596                    0.010                   -1341.293                      0.075         -1374.409                 0.060          -3537.830
+ofi > 1.0, lag 1                413.288         0.009      605.168                0.053                   166.967                    0.005                    -853.397                      0.037          -792.896                 0.028          -2443.288
+imbalance > 0.0, lag 1          546.450         0.026      327.591                0.237                   455.667                    0.004                    -324.136                      0.047            30.971                 0.025          -1314.782
+imbalance > 0.2, lag 1          668.133         0.027      457.627                0.238                   574.530                    0.003                     -84.130                      0.031           169.061                 0.019          -1758.139
+imbalance > 0.4, lag 1          610.658         0.017      421.117                0.154                   479.049                    0.003                    -356.288                      0.029           -35.861                 0.018          -1914.486
+ofi > 0.0, lag 2                168.867         0.008     2134.389                0.008                  -375.380                    0.025                   -3085.030                      0.270         -3266.279                 0.200          -5965.286
+ofi > 0.25, lag 2               217.381         0.005     1121.967                0.016                  -144.358                    0.009                   -1554.071                      0.073         -1751.456                 0.060          -3546.345
+ofi > 1.0, lag 2                203.393         0.003      600.750                0.020                   -99.534                    0.005                   -1105.083                      0.035         -1244.836                 0.028          -2449.937
+imbalance > 0.0, lag 2          404.596         0.019      327.136                0.176                   322.330                    0.004                    -416.240                      0.045           -96.648                 0.025          -1329.014
+imbalance > 0.2, lag 2          503.085         0.020      453.689                0.175                   406.714                    0.003                    -207.401                      0.029             5.129                 0.019          -1775.363
+imbalance > 0.4, lag 2          440.821         0.012      414.673                0.107                   313.926                    0.003                    -461.390                      0.027          -218.667                 0.018          -1925.205
+ofi > 0.0, lag 5                -18.242        -0.001     2136.781               -0.001                  -535.173                    0.025                   -3235.959                      0.271         -3426.278                 0.200          -5980.653
+ofi > 0.25, lag 5                30.818         0.001     1126.439                0.002                  -336.363                    0.009                   -1734.260                      0.072         -2019.863                 0.060          -3552.981
+ofi > 1.0, lag 5                113.287         0.002      600.500                0.010                  -166.618                    0.004                   -1187.789                      0.034         -1408.550                 0.028          -2453.592
+imbalance > 0.0, lag 5          261.197         0.013      335.780                0.113                   196.572                    0.003                    -498.825                      0.043          -229.467                 0.025          -1340.281
+imbalance > 0.2, lag 5          235.398         0.009      452.877                0.079                   156.044                    0.003                    -418.155                      0.027          -263.889                 0.019          -1797.345
+imbalance > 0.4, lag 5          201.734         0.005      412.344                0.047                    87.228                    0.003                    -574.031                      0.023          -469.885                 0.018          -1937.490
+Best variant before fees: imbalance > 0.2, lag 1. Deflated Sharpe over all 18 variants 0.000; within the 9 imbalance variants 0.027
+Half-spread at the close of bars where imbalance > 0.2, lag 1 trades: 0.02216 bp, vs 0.02217 bp median: the spread is not wider when the signal trades
+imbalance > 0.2, lag 1: in the market 67% of bars; on bars where the mid moves, right 84% of the time; captures 45% of the mid's total absolute path (427.4 bp over 2.0 h)
+Walk-forward (30 min train, 15 min test, lag 1 bar, spread + impact, no fee): out-of-sample net SR 160.67, mean 0.0061 bp/bar
+
+real	6m5.713s
+user	0m0.000s
+sys	0m0.000s

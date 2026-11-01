@@ -21,6 +21,11 @@ The Y calibration is a modelling choice: OFI's impact is linear in flow and meas
 the square-root law is concave in size and meant for orders worked over a day. Matching them at one
 size gives the right order of magnitude, not a precise coefficient; S4 reports results for a range.
 Passing impact_coef (e.g. the textbook Y = 1) overrides the calibration.
+
+Fees. An order book shows the spread and the impact, not the venue's fee schedule, which is usually
+the largest cost of trading a liquid crypto pair: Binance's published base spot taker fee is 0.10%
+(10 bp) per trade, against a BTCUSDT half-spread under 0.001 bp. fee_bps is charged per unit traded,
+like the half-spread, so it is added to SpreadImpactCost's linear term.
 Clock: calibrate_costs uses the frames' timestamps (lobkit.load_recording puts quotes and trades on
 the local receive clock), so per-second rates are wall-clock rates.
 """
@@ -52,11 +57,13 @@ def bar_inputs(cal: Mapping, bar_seconds: float) -> dict:
 
 
 def cost_model_from_book(cal: Mapping | Mapping[str, Mapping], bar_seconds: float, capital: float,
-                         impact_coef: float | None = None, ofi_bucket_seconds: float = 10.0) -> SpreadImpactCost:
+                         impact_coef: float | None = None, ofi_bucket_seconds: float = 10.0,
+                         fee_bps: float = 0.0) -> SpreadImpactCost:
     """SpreadImpactCost from one calibrate_costs dict, or from {asset: dict} for per-asset costs.
 
     With several assets, half-spread and Y are taken per asset and averaged for Y (SpreadImpactCost has one
-    coefficient); vol and ADV stay per asset. impact_coef overrides the calibrated Y.
+    coefficient); vol and ADV stay per asset. impact_coef overrides the calibrated Y; fee_bps (exchange fee per
+    unit traded) is added to the half-spread.
     """
     per_asset = all(isinstance(v, Mapping) for v in cal.values())
     cals = dict(cal) if per_asset else {"_": cal}
@@ -64,10 +71,10 @@ def cost_model_from_book(cal: Mapping | Mapping[str, Mapping], bar_seconds: floa
     y = float(np.mean(ys)) if impact_coef is None else impact_coef
     if not per_asset:
         inp = bar_inputs(cal, bar_seconds)
-        return SpreadImpactCost(cal["half_spread_bps"], y, inp["adv"], inp["vol"], capital)
+        return SpreadImpactCost(cal["half_spread_bps"] + fee_bps, y, inp["adv"], inp["vol"], capital)
     inputs = {a: bar_inputs(c, bar_seconds) for a, c in cals.items()}
     spreads = [c["half_spread_bps"] for c in cals.values()]
     # ponytail: one half-spread for all assets (SpreadImpactCost takes a scalar); the max is the cautious
     # choice. Make half_spread_bps accept a per-asset Series in btlab if spreads differ a lot.
-    return SpreadImpactCost(max(spreads), y, pd.Series({a: v["adv"] for a, v in inputs.items()}),
+    return SpreadImpactCost(max(spreads) + fee_bps, y, pd.Series({a: v["adv"] for a, v in inputs.items()}),
                             pd.Series({a: v["vol"] for a, v in inputs.items()}), capital)

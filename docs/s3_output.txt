@@ -1,0 +1,104 @@
+
+=== Synthetic: risk-lab block covariance (true risk known): 50 assets, 3,024 days, rebalance every 21 days, lag 1, 5 bp
+                                sharpe  annual_return  realised_vol  annual_turnover  true_vol
+config                                                                                        
+1/N, 60d                         0.431          0.055         0.150            0.792     0.151
+1/N, 126d                        0.431          0.055         0.150            0.792     0.151
+1/N, 252d                        0.431          0.055         0.150            0.792     0.151
+1/N, 504d                        0.431          0.055         0.150            0.792     0.151
+inverse variance, 60d            0.457          0.051         0.127            1.641     0.128
+inverse variance, 126d           0.475          0.053         0.126            1.009     0.128
+inverse variance, 252d           0.473          0.053         0.126            0.780     0.128
+inverse variance, 504d           0.488          0.055         0.126            0.719     0.128
+min-var sample long-only, 60d    0.563          0.053         0.101            7.772     0.102
+min-var sample long-only, 126d   0.614          0.056         0.097            3.847     0.098
+min-var sample long-only, 252d   0.558          0.049         0.095            1.866     0.096
+min-var sample long-only, 504d   0.621          0.055         0.094            1.065     0.095
+min-var LW long-only, 60d        0.525          0.049         0.101            5.639     0.102
+min-var LW long-only, 126d       0.591          0.054         0.097            3.042     0.098
+min-var LW long-only, 252d       0.544          0.048         0.095            1.633     0.096
+min-var LW long-only, 504d       0.603          0.054         0.094            0.994     0.095
+risk parity (LW), 60d            0.455          0.055         0.139            1.746     0.140
+risk parity (LW), 126d           0.461          0.056         0.139            1.077     0.140
+risk parity (LW), 252d           0.450          0.054         0.138            0.829     0.140
+risk parity (LW), 504d           0.455          0.055         0.138            0.774     0.140
+HRP (sample), 60d                0.446          0.050         0.127            4.387     0.128
+HRP (sample), 126d               0.495          0.056         0.127            3.759     0.128
+HRP (sample), 252d               0.517          0.059         0.127            3.504     0.128
+HRP (sample), 504d               0.491          0.055         0.126            3.253     0.127
+Best in-sample: min-var sample long-only, 504d (Sharpe 0.62); Deflated Sharpe over 24 configurations 0.942; walk-forward out-of-sample Sharpe 0.59
+Annual turnover by window, HRP vs min-var LW long-only:
+         HRP  min-var LW
+window                  
+60      4.39        5.64
+126     3.76        3.04
+252     3.50        1.63
+504     3.25        0.99
+FHS 99% VaR backtests (252-day window), cost sensitivity of net Sharpe (0 / 5 / 20 / 50 bp):
+                          exceptions  expected  kupiec_p  SR@0bp  SR@5bp  SR@20bp  SR@50bp
+method                                                                                    
+1/N                               21    20.200     0.859   0.433   0.431    0.423    0.408
+inverse variance                  24    20.200     0.409   0.476   0.473    0.464    0.446
+min-var sample long-only          23    20.200     0.540   0.568   0.558    0.529    0.472
+min-var LW long-only              21    20.200     0.859   0.552   0.544    0.519    0.469
+risk parity (LW)                  23    20.200     0.540   0.453   0.450    0.442    0.424
+HRP (sample)                      24    20.200     0.409   0.530   0.517    0.477    0.397
+Look-ahead check of a CovarianceStrategy: passed=True
+
+=== Live: risk-lab's 10-ETF universe, Yahoo Finance adjusted closes: 10 assets, 4,676 days, rebalance every 21 days, lag 1, 5 bp
+                                sharpe  annual_return  realised_vol  annual_turnover
+config                                                                              
+1/N, 60d                         0.779          0.070         0.092            0.350
+1/N, 126d                        0.779          0.070         0.092            0.350
+1/N, 252d                        0.779          0.070         0.092            0.350
+1/N, 504d                        0.779          0.070         0.092            0.350
+inverse variance, 60d            0.827          0.049         0.061            1.957
+inverse variance, 126d           0.798          0.048         0.061            1.138
+inverse variance, 252d           0.767          0.047         0.062            0.701
+inverse variance, 504d           0.814          0.050         0.062            0.455
+min-var sample long-only, 60d    0.706          0.034         0.050            3.729
+min-var sample long-only, 126d   0.643          0.032         0.051            2.132
+min-var sample long-only, 252d   0.667          0.034         0.052            1.262
+min-var sample long-only, 504d   0.738          0.037         0.051            0.662
+min-var LW long-only, 60d        0.809          0.043         0.054            2.880
+min-var LW long-only, 126d       0.738          0.038         0.053            1.709
+min-var LW long-only, 252d       0.758          0.039         0.052            1.096
+min-var LW long-only, 504d       0.796          0.040         0.051            0.651
+risk parity (LW), 60d            0.835          0.057         0.069            1.257
+risk parity (LW), 126d           0.822          0.056         0.070            0.758
+risk parity (LW), 252d           0.799          0.055         0.070            0.515
+risk parity (LW), 504d           0.837          0.057         0.069            0.386
+HRP (sample), 60d                0.771          0.047         0.062            3.613
+HRP (sample), 126d               0.749          0.046         0.062            2.198
+HRP (sample), 252d               0.715          0.043         0.062            1.610
+HRP (sample), 504d               0.781          0.048         0.063            0.922
+Best in-sample: risk parity (LW), 504d (Sharpe 0.84); Deflated Sharpe over 24 configurations 0.998; walk-forward out-of-sample Sharpe 0.56
+Annual turnover by window, HRP vs min-var LW long-only:
+         HRP  min-var LW
+window                  
+60      3.61        2.88
+126     2.20        1.71
+252     1.61        1.10
+504     0.92        0.65
+FHS 99% VaR backtests (252-day window), cost sensitivity of net Sharpe (0 / 5 / 20 / 50 bp):
+                          exceptions  expected  kupiec_p  SR@0bp  SR@5bp  SR@20bp  SR@50bp
+method                                                                                    
+1/N                               44    36.720     0.242   0.781   0.779    0.773    0.762
+inverse variance                  52    36.720     0.017   0.773   0.767    0.750    0.717
+min-var sample long-only          46    36.720     0.139   0.679   0.667    0.630    0.556
+min-var LW long-only              49    36.720     0.053   0.769   0.758    0.726    0.662
+risk parity (LW)                  53    36.720     0.011   0.803   0.799    0.788    0.766
+HRP (sample)                      51    36.720     0.025   0.728   0.715    0.676    0.598
+Look-ahead check of a CovarianceStrategy: passed=True
+
+=== Volatility targeting: TSMom on 10 GARCH-t assets (vol clusters), 10% target per asset sleeve
+                 mean sleeve vol (target 0.10)  sleeve vol spread  portfolio realised vol  net Sharpe  forecast RMSE (vol pts)  forecast bias (vol pts)
+vol forecast                                                                                                                                           
+rolling 63d std                          0.108              0.001                   0.035       0.979                    7.366                    0.418
+EWMA 0.94                                0.107              0.001                   0.034       1.031                    6.716                    0.267
+GARCH(1,1)                               0.101              0.003                   0.032       1.031                    6.503                    0.665
+Look-ahead check with the GARCH estimator: passed=True
+
+real	9m34.209s
+user	0m0.000s
+sys	0m0.061s

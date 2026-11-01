@@ -7,7 +7,11 @@ Status: reconnaissance done, **no library code changed**. Section 6 lists what n
 - Q2: you merge the volsurface M6 PR first, then `link/v0.2` branches from main.
 - Q3: the version and release-flow proposal is approved.
 - api-anything skill: skipped for now.
-- Q4–Q7 are still open. The default in each applies unless you say otherwise.
+- Q4–Q7: your instruction was to go ahead, so the default in each applied:
+  - Q4: the autocallable example moved to S1 after S1 reproduced it.
+  - Q5: linear θ was not re-added.
+  - Q6: all three README errors were fixed, and each figure is now printed by a script.
+  - Q7: sp-pricer M6 went before M8, with the ROADMAP updated.
 
 **Submodule setup note:** the old top-level folders were locked by the editor or OneDrive, so each repo was
 cloned fresh from GitHub into `projects/` instead of being moved. Commits are identical to the ones checked in
@@ -344,3 +348,27 @@ Network-only studies (btlab 04, risklab 04, volsurface live/snapshot) are not pi
 - Grid proxy interpolation is linear, not cubic, because it is monotone and has no overshoot near barriers.
   Upgrade to cubic only if validation error exceeds about 2 SE.
 - Elapsed time in notes: horizon limit enforced, with no memory-state handling in v1.
+
+---
+
+## 8. Deviations made during the build (2026-11-01)
+
+- **`CovarianceStrategy` schedule.** It recomputes every `every` trading days, on positions `every-1, 2·every-1, ...`,
+  not at calendar month-ends.
+  - A month-end schedule fails `check_lookahead`, because spotting the last trading day of a month needs
+    tomorrow's date.
+  - The positional schedule pairs with `run_backtest(rebalance=every, execution_lag=1)`.
+- **`SpreadImpactCost` vs the existing impact path.** `SpreadImpactCost.from_dollar_volume` reproduces
+  `run_backtest(dollar_volume=...)` to 1e-12, so btlab still has a single square-root impact formula.
+- **Impact coefficient Y (Link D).** Y is calibrated by matching the square-root law to the measured linear OFI
+  impact at an order the size of the mean top-of-book depth. The order book gives no direct estimate of Y. The
+  choice is documented in `adapters/costs.py`, and `impact_coef=` overrides it.
+- **risk-lab `Scenario`.** It is vectorised: one object holds a batch of shocks. A bug found in Link B (a batch
+  that shocks only vols reported length 1) was fixed before release.
+- **volsurface `local_vol_surface()`.** It built a new surface without `k_range`. Fixed in 0.2.0 before
+  release, with a test.
+- **Local-vol guard-rail counter.** sp-pricer evaluates local vol on a strike grid that spans every path, so
+  volsurface's `n_clamped` counts grid points, not paths. S1 therefore also reports the share of
+  (path, day) points beyond the fitted range, which is 5.7%.
+- **Q4 done.** S1 reproduced volsurface's autocallable table, so the example and the `pricer` extra moved
+  out of volsurface.

@@ -28,7 +28,7 @@ from quantstack.adapters.surface import SurfaceLocalVol
 
 _SCHEDULE_FIELDS = ("observation_times", "coupon_times", "maturity")
 SPOT_GRID = tuple(np.linspace(0.6, 1.4, 17))
-VOL_GRID = tuple(np.linspace(-0.10, 0.15, 6))
+VOL_GRID = tuple(np.linspace(-0.10, 0.15, 11))   # 2.5 vol-point steps: note prices are convex in vol
 
 
 def shift_schedule(product, elapsed: float):
@@ -140,5 +140,7 @@ class GridNotePosition:
                                rng.uniform(self.vol_shifts[0], self.vol_shifts[-1], n_points)])
         direct = np.array([self.position.price(p[:-1], p[-1], elapsed=self.elapsed) for p in pts])
         err = self.grid(pts) - direct[:, 0]
-        return {"max_abs_error": float(np.abs(err).max()), "max_error_in_se": float(np.abs(err / direct[:, 1]).max()),
+        noisy = direct[:, 1] > 1e-6        # deep in or out of the money a payoff can be riskless: SE ~ 0
+        in_se = np.abs(err[noisy] / direct[noisy, 1]).max() if noisy.any() else 0.0
+        return {"max_abs_error": float(np.abs(err).max()), "max_error_in_se": float(in_se),
                 "mean_abs_error": float(np.abs(err).mean()), "points": pts, "errors": err}

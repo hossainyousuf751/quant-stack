@@ -1,0 +1,51 @@
+N1 Phoenix A: price 103.93; grid vs direct max error 0.077 (2.2 SE), mean 0.018
+N2 worst-of Phoenix: price 97.71; grid vs direct max error 0.071 (0.7 SE), mean 0.019
+N3 reverse convertible A: price 103.51; grid vs direct max error 0.058 (1.7 SE), mean 0.017
+N4 worst-of RC: price 103.07; grid vs direct max error 0.064 (1.7 SE), mean 0.021
+
+Per-note Greeks (per 100 notional; vega per vol point):
+                             delta   gamma    vega
+N1 Phoenix A             A  0.1195 -0.0199 -0.6153
+N2 worst-of Phoenix      A  0.1115 -0.0090 -0.3687
+                         B  0.5283 -0.1485 -0.6489
+N3 reverse convertible A A  0.1625 -0.0219 -0.3108
+N4 worst-of RC           A  0.0573 -0.0048 -0.1574
+                         B  0.3710 -0.0553 -0.4286
+
+Is vega linear? Price change for a parallel vol shift, full repricing vs vega x shift (per note):
+  N1 Phoenix A (x quantity -10 for the book): -0.08: +3.83 vs +4.92; -0.04: +2.41 vs +2.46; +0.04: -2.57 vs -2.46; +0.08: -5.23 vs -4.92
+  N2 worst-of Phoenix (x quantity -10 for the book): -0.08: +7.40 vs +8.14; -0.04: +3.97 vs +4.07; +0.04: -4.08 vs -4.07; +0.08: -7.92 vs -8.14
+
+Book delta (shares) [-4.509 -8.993], gamma [0.5566 2.0379], vega/vol pt 25.295; hedge: [4.509 8.993] shares
+lognormal (model covariance): 20,000 scenarios, 0.00% of spot moves clipped to the grid
+fat-tailed (simulated DCC-t history): 3,991 scenarios, 0.00% of spot moves clipped to the grid
+
+10-day VaR (99%) and ES (97.5%) of the book, currency units (book short 10 x 100 notional of each note):
+                                                   VaR99 delta-normal  VaR99 delta-gamma-vega  VaR99 full reval  ES97.5 delta-normal  ES97.5 delta-gamma-vega  ES97.5 full reval
+scenarios                            book                                                                                                                                       
+lognormal (model covariance)         unhedged                   89.87                  222.38            154.37                90.31                   225.40             152.97
+                                     delta-hedged                0.00                  152.20             89.97                 0.00                   152.08              89.88
+fat-tailed (simulated DCC-t history) unhedged                   89.87                  203.20            143.89                90.31                   204.40             142.10
+                                     delta-hedged                0.00                  146.94             89.38                 0.00                   148.73              88.67
+
+Stress tests, flat vol (direct revaluation, no time decay), P&L per position:
+                    N1 Phoenix A  N2 worst-of Phoenix  N3 reverse convertible A  N4 worst-of RC  hedge A  hedge B   total
+spot -10%                  20.00                48.83                     25.33           34.21   -45.09   -44.96   38.32
+spot -20%                  67.97               123.77                     83.70           92.67   -90.17   -89.93  188.00
+spot -30%                 157.77               232.53                    188.17          182.77  -135.26  -134.89  491.08
+vol +5                     32.37                50.46                     18.25           33.13     0.00     0.00  134.20
+vol +10                    65.84                97.89                     39.39           70.97     0.00     0.00  274.08
+spot -20%, vol +10        160.77               230.82                    137.40          178.20   -90.17   -89.93  527.09
+
+Stress tests, local vol from synthetic SSVI surfaces (shifted surfaces), P&L per position:
+                                 N1 Phoenix A  N2 worst-of Phoenix  N3 reverse convertible A  N4 worst-of RC   total
+vol +5                                  28.15                43.18                     16.96           30.86  119.15
+skew steeper (-0.03 per unit k)          5.92                 8.61                      2.34            6.33   23.20
+spot -20%                              119.87               183.82                    118.43          150.28  572.39
+spot -20%, vol +5, steeper             163.63               242.66                    144.53          197.62  748.44
+docs/s2_pnl_profile.png
+At A = 75%: full 970.1, delta 112.7, delta-gamma 286.6, delta-gamma-vega 792.5
+
+real	6m9.715s
+user	0m0.015s
+sys	0m0.062s

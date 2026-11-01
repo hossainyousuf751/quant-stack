@@ -87,13 +87,20 @@ def main() -> None:
                                     index=[MARKET.underlyings[i].name for i in assets])
         pos = StructuredNotePosition(note, m, QUANTITY, n_paths=N_PATHS, seed=SEED)
         direct[name] = OnAssets(pos, assets)
-        grid = GridNotePosition(pos, HORIZON)
+        grid = GridNotePosition(pos, HORIZON, spot_mults=np.linspace(0.7, 1.3, 25))
         check = grid.validate(n_points=20)
         print(f"{name}: price {g.price:.2f}; grid vs direct max error {check['max_abs_error']:.3f} "
               f"({check['max_error_in_se']:.1f} SE), mean {check['mean_abs_error']:.3f}")
         grids[name] = OnAssets(grid, assets)
     print("\nPer-note Greeks (per 100 notional; vega per vol point):")
     print(pd.concat(greeks).round(4).to_string())
+    print("\nIs vega linear? Price change for a parallel vol shift, full repricing vs vega x shift (per note):")
+    for name in ("N1 Phoenix A", "N2 worst-of Phoenix"):
+        pos, ones = direct[name].position, np.ones(len(NOTES[name][1]))
+        base = pos.price(ones)[0]
+        cells = [f"{dv:+.2f}: {pos.price(ones, dv)[0] - base:+.2f} vs {greeks[name]['vega'].sum() * 100 * dv:+.2f}"
+                 for dv in (-0.08, -0.04, 0.04, 0.08)]
+        print(f"  {name} (x quantity {QUANTITY:g} for the book): " + "; ".join(cells))
 
     # book Greeks per asset (currency units), and the delta hedge in shares
     delta, gamma, vega = np.zeros(2), np.zeros(2), 0.0
@@ -114,8 +121,8 @@ def main() -> None:
 
     rows = []
     for set_name, mult in sets.items():
-        clipped = np.mean((mult < 0.61) | (mult > 1.39))
-        mult = np.clip(mult, 0.61, 1.39)                  # the price grid spans 0.6-1.4
+        clipped = np.mean((mult < 0.71) | (mult > 1.29))
+        mult = np.clip(mult, 0.71, 1.29)                  # the price grid spans 0.7-1.3
         print(f"{set_name}: {len(mult):,} scenarios, {clipped:.2%} of spot moves clipped to the grid")
         scen = with_spot_vol_rule(mult)
         dS = spots * (mult - 1)
@@ -164,7 +171,7 @@ def main() -> None:
     # P&L profile against A's spot (B unchanged), with the spot-vol rule
     import matplotlib.pyplot as plt
 
-    m_a = np.linspace(0.65, 1.35, 57)
+    m_a = np.linspace(0.71, 1.29, 59)
     mult = np.column_stack([m_a, np.ones_like(m_a)])
     scen = with_spot_vol_rule(mult)
     dS = spots * (mult - 1)

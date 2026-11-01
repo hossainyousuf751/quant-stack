@@ -61,6 +61,23 @@ METHODS = {
 }
 
 
+_WEIGHTS: dict = {}
+
+
+class CachedCovarianceStrategy(CovarianceStrategy):
+    """CovarianceStrategy whose weights are memoised per (configuration, price frame).
+
+    walk_forward and the per-configuration table both need every configuration's weights; long-only
+    minimum variance takes ~40 s per configuration on 50 assets, so compute each once.
+    """
+
+    def weights(self, prices: pd.DataFrame) -> pd.DataFrame:
+        key = (self, id(prices), prices.shape)
+        if key not in _WEIGHTS:
+            _WEIGHTS[key] = super().weights(prices)
+        return _WEIGHTS[key]
+
+
 def configs() -> tuple[list[dict], list[str]]:
     grid, labels = [], []
     for name, (est, alloc) in METHODS.items():
@@ -77,17 +94,18 @@ def fhs(r: pd.Series) -> pd.DataFrame:
 
 def study(prices: pd.DataFrame, label: str, true_cov: np.ndarray | None = None) -> pd.DataFrame:
     grid, labels = configs()
-    wf = walk_forward(prices, CovarianceStrategy, grid, train_days=756, test_days=252, rebalance=EVERY,
+    wf = walk_forward(prices, CachedCovarianceStrategy, grid, train_days=756, test_days=252, rebalance=EVERY,
                       execution_lag=1, cost_bps=COST_BPS)
     rows = []
     for j, (params, lab) in enumerate(zip(grid, labels, strict=True)):
-        w = CovarianceStrategy(**params).weights(prices)
+        w = CachedCovarianceStrategy(**params).weights(prices)
         res = run_backtest(prices, w, rebalance=EVERY, execution_lag=1, cost_bps=COST_BPS)
         s = res.summary()
         row = {"config": lab, "sharpe": s["sharpe"], "annual_return": s["annual_return"],
                "realised_vol": s["annual_vol"], "annual_turnover": s.get("annual_turnover", np.nan)}
         if true_cov is not None:   # ex-ante true vol of the weights actually held at each rebalance
             held = res.weights.fillna(0.0).to_numpy()
+            held = held[np.abs(held).sum(axis=1) > 0]       # skip warm-up rebalances that hold nothing
             row["true_vol"] = float(np.mean(np.sqrt(np.einsum("ti,ij,tj->t", held, true_cov, held))))
         rows.append(row)
         assert np.allclose(wf.trial_returns[j], res.returns), "walk_forward and run_backtest disagree"
@@ -107,7 +125,7 @@ def study(prices: pd.DataFrame, label: str, true_cov: np.ndarray | None = None) 
     print(pd.DataFrame({"HRP": hrp_turnover.to_numpy(), "min-var LW": mv_turnover.to_numpy()},
                        index=pd.Index(WINDOWS, name="window")).round(2).to_string())
 
-    chosen = {name: CovarianceStrategy(*METHODS[name], window=252, min_history=max(WINDOWS), every=EVERY)
+    chosen = {name: CachedCovarianceStrategy(*METHODS[name], window=252, min_history=max(WINDOWS), every=EVERY)
               for name in METHODS}
     print("FHS 99% VaR backtests (252-day window), cost sensitivity of net Sharpe (0 / 5 / 20 / 50 bp):")
     out = []
@@ -186,14 +204,20 @@ def vol_targeting() -> None:
     rows = []
     for name, est in (("rolling 63d std", None), ("EWMA 0.94", ewma_vol), ("GARCH(1,1)", garch_vol)):
         strat = TimeSeriesMomentum(target_vol=0.10, max_weight=1.0, vol_estimator=est)
-        res = run_backtest(prices, strat.weights(prices), rebalance="W", execution_lag=1, cost_bps=COST_BPS)
+        w = strat.weights(prices)
+        res = run_backtest(prices, w, rebalance="W", execution_lag=1, cost_bps=COST_BPS)
+        # TSMom scales each asset to target_vol, then divides by the number of assets, so the per-asset
+        # sleeve (n x weight x return, weight from the previous close) is what should run at 10%
+        sleeves = (w.shape[1] * w.shift(1) * r).iloc[600:]
         fc = (est or rolling_vol)(prices.pct_change(fill_method=None))
         err = (fc - realised).iloc[600:-21]
-        rows.append({"vol forecast": name, "portfolio realised vol": annual_vol(res.returns.iloc[600:]),
+        rows.append({"vol forecast": name, "mean sleeve vol (target 0.10)": float(sleeves.std().mean() * np.sqrt(252)),
+                     "sleeve vol spread": float(sleeves.std().std() * np.sqrt(252)),
+                     "portfolio realised vol": annual_vol(res.returns.iloc[600:]),
                      "net Sharpe": sharpe(res.returns.iloc[600:]),
                      "forecast RMSE (vol pts)": 100 * float(np.sqrt(np.nanmean(err.to_numpy() ** 2))),
                      "forecast bias (vol pts)": 100 * float(np.nanmean(err.to_numpy()))})
-    print("\n=== Volatility targeting: TSMom on 10 GARCH-t assets (true vol clusters), target 10% per asset sleeve")
+    print("\n=== Volatility targeting: TSMom on 10 GARCH-t assets (vol clusters), 10% target per asset sleeve")
     with pd.option_context("display.float_format", "{:.3f}".format, "display.width", 200):
         print(pd.DataFrame(rows).set_index("vol forecast").to_string())
     print("Look-ahead check with the GARCH estimator: passed="

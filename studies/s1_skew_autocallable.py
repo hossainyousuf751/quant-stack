@@ -191,11 +191,7 @@ if __name__ == "__main__":
     for ticker, spread in (("SPX", 0.3), ("NDX", 0.5)):
         quotes = pd.read_csv(paths[ticker][-1])
         fits[ticker] = fit_surface(quotes, float(quotes["spot"].iloc[0]), max_rel_spread=spread)
-    af = []
-    for f in fits.values():
-        s = f.local_vol_surface()           # arbitrage-free SVI on pillar expiries (volsurface M6)
-        s.k_range = f.svi_af_surface.k_range  # local_vol_surface() builds a new surface without it
-        af.append(s)
+    af = [f.local_vol_surface() for f in fits.values()]   # arbitrage-free SVI on pillar expiries (volsurface M6)
     corr = np.array([[1.0, 0.9], [0.9, 1.0]])
     real = {"SPX/NDX worst-of": run(f"CBOE close {paths['SPX'][-1].stem[-8:]}, SPX/NDX worst-of, correlation 0.9",
                                     af, corr),

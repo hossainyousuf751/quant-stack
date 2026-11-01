@@ -1,0 +1,73 @@
+
+=== Synthetic, single asset: spots [100.0], flat ATM vol at 3y ['16.01%'], 100,000 paths, seed 42
+                  fair value    SE  issuer margin vs 100  vs flat ATM  SE of diff
+model                                                                            
+flat ATM vol         104.843 0.023                -4.843        0.000       0.000
+flat barrier vol     100.649 0.049                -0.649       -4.194       0.040
+local vol            101.434 0.045                -1.434       -3.408       0.034
+
+Autocall / knock-in probabilities:
+                  call 0.25y  call 0.5y  call 0.75y  call 1y  call 1.25y  call 1.5y  call 1.75y  call 2y  call 2.25y  call 2.5y  call 2.75y  to maturity  knocked in
+flat ATM vol           0.000      0.000       0.000    0.530       0.075      0.047       0.033    0.025       0.020      0.017       0.014        0.239       0.023
+flat barrier vol       0.000      0.000       0.000    0.494       0.074      0.045       0.032    0.024       0.020      0.016       0.014        0.280       0.097
+local vol              0.000      0.000       0.000    0.619       0.068      0.041       0.028    0.021       0.017      0.014       0.011        0.180       0.067
+local-vol strike-grid points on a guard rail (flat extrapolation, NaN or clip): ['59.4%']
+
+=== Synthetic, two-asset worst-of, correlation 0.6: spots [100.0, 50.0], flat ATM vol at 3y ['16.01%', '22.01%'], 100,000 paths, seed 42
+                  fair value    SE  issuer margin vs 100  vs flat ATM  SE of diff
+model                                                                            
+flat ATM vol         101.892 0.047                -1.892        0.000       0.000
+flat barrier vol      93.818 0.068                 6.182       -8.073       0.046
+local vol             96.111 0.068                 3.889       -5.781       0.043
+
+Autocall / knock-in probabilities:
+                  call 0.25y  call 0.5y  call 0.75y  call 1y  call 1.25y  call 1.5y  call 1.75y  call 2y  call 2.25y  call 2.5y  call 2.75y  to maturity  knocked in
+flat ATM vol           0.000      0.000       0.000    0.370       0.074      0.047       0.035    0.028       0.023      0.020       0.016        0.387       0.091
+flat barrier vol       0.000      0.000       0.000    0.336       0.070      0.045       0.033    0.026       0.021      0.019       0.016        0.436       0.217
+local vol              0.000      0.000       0.000    0.470       0.074      0.046       0.033    0.025       0.020      0.017       0.013        0.301       0.154
+local-vol strike-grid points on a guard rail (flat extrapolation, NaN or clip): ['59.0%', '69.9%']
+
+Euler check, synthetic worst-of under local vol:
+ steps per year  fair value    SE
+            126      96.233 0.068
+            252      96.298 0.068
+            504      96.147 0.068
+
+Share of simulated (path, day) points beyond the fitted moneyness range, asset A: 5.73%
+docs/s1_price_vs_barrier_synthetic.png
+
+=== CBOE close 20261030, SPX/NDX worst-of, correlation 0.9: spots [7580.07, 28384.85], flat ATM vol at 3y ['18.18%', '23.83%'], 100,000 paths, seed 42
+                  fair value    SE  issuer margin vs 100  vs flat ATM  SE of diff
+model                                                                            
+flat ATM vol         100.439 0.043                -0.439        0.000       0.000
+flat barrier vol      94.149 0.064                 5.851       -6.289       0.043
+local vol             96.444 0.066                 3.556       -3.995       0.042
+
+Autocall / knock-in probabilities:
+                  call 0.25y  call 0.5y  call 0.75y  call 1y  call 1.25y  call 1.5y  call 1.75y  call 2y  call 2.25y  call 2.5y  call 2.75y  to maturity  knocked in
+flat ATM vol           0.000      0.000       0.000    0.470       0.076      0.048       0.036    0.029       0.022      0.019       0.016        0.283       0.077
+flat barrier vol       0.000      0.000       0.000    0.424       0.073      0.046       0.033    0.027       0.021      0.019       0.016        0.341       0.177
+local vol              0.000      0.000       0.000    0.574       0.078      0.044       0.030    0.023       0.018      0.015       0.013        0.206       0.112
+local-vol strike-grid points on a guard rail (flat extrapolation, NaN or clip): ['56.9%', '65.4%']
+
+=== CBOE close, SPX single asset: spots [7580.07], flat ATM vol at 3y ['18.18%'], 100,000 paths, seed 42
+                  fair value    SE  issuer margin vs 100  vs flat ATM  SE of diff
+model                                                                            
+flat ATM vol         102.917 0.026                -2.917        0.000       0.000
+flat barrier vol      97.341 0.055                 2.659       -5.575       0.046
+local vol             99.169 0.053                 0.831       -3.747       0.041
+
+Autocall / knock-in probabilities:
+                  call 0.25y  call 0.5y  call 0.75y  call 1y  call 1.25y  call 1.5y  call 1.75y  call 2y  call 2.25y  call 2.5y  call 2.75y  to maturity  knocked in
+flat ATM vol           0.000      0.000       0.000    0.553       0.078      0.048       0.033    0.025       0.020      0.017       0.014        0.212       0.029
+flat barrier vol       0.000      0.000       0.000    0.499       0.075      0.045       0.033    0.024       0.020      0.017       0.015        0.273       0.124
+local vol              0.000      0.000       0.000    0.670       0.074      0.039       0.027    0.019       0.015      0.012       0.010        0.133       0.070
+local-vol strike-grid points on a guard rail (flat extrapolation, NaN or clip): ['57.6%']
+
+eSSVI local vol (under-states the SPX put wing), same note: 96.15 +/- 0.07
+volsurface M5/M6 table for comparison (200k paths, flat-rate discounting): flat 100.41, eSSVI 96.14, arb-free SVI 96.42
+docs/s1_price_vs_barrier_spx.png
+
+real	9m3.627s
+user	0m0.000s
+sys	0m0.015s

@@ -1,0 +1,36 @@
+
+=== Synthetic SSVI surface, spot 100: 3-month ATM vol 18.70%, 95 put vol 20.88%, 105 call vol 16.62%; 200,000 scenarios, seed 0
+                             VaR99 flat ATM  VaR99 sticky K  VaR99 sticky K/S
+horizon_days book                                                            
+1            covered call             1.972           2.052             1.916
+             protective put           1.858           1.826             2.041
+             short straddle           0.378           0.378             0.819
+10           covered call             6.770           7.043             6.969
+             protective put           4.894           4.921             5.505
+             short straddle           3.358           3.358             3.993
+                             ES99 flat ATM  ES99 sticky K  ES99 sticky K/S
+horizon_days book                                                         
+1            covered call            2.283          2.375            2.230
+             protective put          2.095          2.060            2.309
+             short straddle          0.498          0.498            0.999
+10           covered call            7.874          8.168            8.113
+             protective put          5.247          5.299            5.901
+             short straddle          4.343          4.343            5.035
+
+=== SPX 20261030, arbitrage-free SVI, rescaled to spot 100: 3-month ATM vol 16.01%, 95 put vol 19.22%, 105 call vol 13.62%; 200,000 scenarios, seed 0
+                             VaR99 flat ATM  VaR99 sticky K  VaR99 sticky K/S
+horizon_days book                                                            
+1            covered call             1.763           1.861             1.774
+             protective put           1.663           1.608             1.888
+             short straddle           0.315           0.315             0.842
+10           covered call             6.006           6.316             6.286
+             protective put           4.454           4.452             5.186
+             short straddle           2.867           2.867             3.800
+                             ES99 flat ATM  ES99 sticky K  ES99 sticky K/S
+horizon_days book                                                         
+1            covered call            2.039          2.152            2.061
+             protective put          1.878          1.817            2.140
+             short straddle          0.414          0.414            1.019
+10           covered call            6.974          7.305            7.284
+             protective put          4.794          4.823            5.579
+             short straddle          3.691          3.691            4.725

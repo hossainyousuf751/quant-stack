@@ -139,3 +139,33 @@ re-pinned to the released commit.
 - microstructure-lab: the squash commit's tree matches the tested branch exactly. The release commit
   changes only the version, manifest and changelog. The two failed runs on the release PR started no jobs:
   the bot merged the PR and deleted its branch first. The 0.2.2 release shows the same pattern.
+
+## 2026-11-02: Tidy-ups and Study S6 (Link E)
+
+**Tidy-ups.**
+- Deleted the merged `link/v0.2` branches on sp-pricer, volsurface, backtest-lab and risk-lab. microstructure-lab
+  keeps its branch: after the squash merge, it is the only ref holding df1d49a, which older quant-stack commits pin.
+  Every commit quant-stack has ever pinned was checked as still fetchable.
+- Deleted the old top-level folders after checking: no unpushed commits, stashes or changes, and data identical to
+  `projects/`.
+- quant-stack, sp-pricer, volsurface and risk-lab moved to actions/checkout and setup-python v7 (Node 20 deprecation),
+  each by PR, with CI green on the branch and on `main`.
+- GitHub topics on all six repos.
+
+**S6, "How did autocallable investors actually do?"**
+- New adapter `realised_cashflows(product, levels)` in `adapters/notes.py`. It reads a note's cash flows on a realised
+  path from the product's own payoff, by discounting one date at a time, and has a test.
+- 250 monthly SPY Phoenix notes, 2005-01 to 2025-10, with the coupon set at issue for a fair value of 98. Realised
+  PV is 101.20, or +3.20 ± 0.72 (Newey-West). That is +2.28 ± 0.38 without the 2008, 2009 and 2020 vintages.
+  94% autocalled and none lost capital; the lowest maturity level was 72%.
+- Checks:
+  - The coupon solve is exact under common random numbers, asserted to 1e-9.
+  - The payoff code agrees with the study on when each note ended.
+  - The output is deterministic, and the study skips cleanly offline.
+- A first version used a fixed 8% coupon, giving fair values up to 112. That is unrealistic, so it is kept only as
+  a secondary comparison.
+- 13 issues in 2013–2016 have a negative par coupon because there is no funding spread and the note is on total
+  return. This is reported, not hidden.
+- A README claim that 2000 issues would have lost capital was checked against data and was wrong: they end at
+  60–85%, and April 2000 matures at 60.4%. Corrected.
+- quant-stack tests: 18 → 19.

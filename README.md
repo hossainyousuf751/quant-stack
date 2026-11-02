@@ -25,7 +25,7 @@ flowchart LR
     RL -->|"estimators and allocators<br/>(plain callables)"| BT[backtest-lab]
     MS[microstructure-lab] -->|"calibrate_costs to SpreadImpactCost<br/>adapters/costs.py"| BT
     subgraph quant-stack
-      A[adapters, studies S1-S5, integration tests]
+      A[adapters, studies S1-S6, integration tests]
     end
 ```
 
@@ -52,6 +52,7 @@ asserts that the duplicates agree to 1e-12 on a grid of inputs and return the sa
 | [S3](studies/s3_risk_portfolios_backtest.py) risk-based portfolios, honestly backtested | Do risk-lab's rankings survive costs, lag and selection? | Long-only minimum variance keeps the lowest true risk (9.5% vs 15.1% for 1/N) after lag and costs. Best of 24 configurations: Deflated Sharpe 0.94, walk-forward out-of-sample Sharpe 0.59. HRP's turnover barely falls with the window on synthetic data but falls 4× on real ETFs |
 | [S4](studies/s4_costs_from_order_book.py) costs from the order book | Does a strong same-second order-flow relationship survive as a trade? | OFI (R² 0.59) loses after the spread alone. Queue imbalance survives spread, 1–5 s latency and the recorded book at small size, but covers at most 0.24 bp per unit traded, so any exchange taker fee kills it |
 | [S5](studies/s5_skew_option_var.py) skew in option VaR | How much does the smile's behaviour under spot moves change option VaR? | Sticky moneyness more than doubles a short straddle's 1-day VaR against sticky strike (0.82 vs 0.38 synthetic, 0.84 vs 0.32 SPX) |
+| [S6](studies/s6_autocallable_investors.py) how did autocallable investors do? | A SPY Phoenix issued monthly since 2005 at a model fair value of 98: what did investors actually receive? | Realised cash flows were worth 101.20 at the issue rate, +3.20 ± 0.72 (Newey-West) above the model. 94% autocalled, none lost capital, and the excess return over the 3-year rate was +1.1% ± 0.7% a year |
 
 Each study prints its tables to [`docs/`](docs) (`s*_output.txt`, plus plots). All seeds are fixed.
 
@@ -105,6 +106,29 @@ risk-lab Study 3's books, priced off a fitted smile instead of one flat vol, wit
 | short ATM straddle | 0.38 | 0.38 | **0.82** |
 
 (Synthetic SSVI surface; the SPX snapshot gives the same ordering.)
+
+### S6: how did autocallable investors actually do?
+
+![Realised vs fair](docs/s6_fair_vs_realised.png)
+
+A 3-year SPY Phoenix is issued on the first trading day of every month from 2005 to 2025: quarterly
+observations, a memory coupon above 70%, autocall at 100% from year 1, and 60% European protection.
+The coupon is set at issue, from that day's VIX and Treasury yields only, so that sp-pricer's fair value
+is 98 (a 2-point margin). The realised SPY path, from btlab's loader, then gives each note's actual cash
+flows, read off by the product's own payoff code.
+
+| 250 notes, 2005-01 to 2025-10 | Value |
+|---|---|
+| coupon set at issue, per year | mean 3.23%, from −0.32% (2013) to 28.4% (Nov 2008) |
+| model fair value at issue | 98.00 |
+| realised cash flows, PV at the issue rate | **101.20** (+3.20 ± 0.72) |
+| realised IRR minus the 3-year rate | +1.13% ± 0.69% a year |
+| outcomes | 94% autocalled (83% at year 1), 6% repaid at par, 0 losses |
+| VIX at issue vs realised vol over the note's life | 19.3% vs 17.0% |
+
+VIX stands in for a 3-year ATM vol, with no skew or term structure. The note is on SPY total return with
+zero dividend yield, and the rate carries no issuer funding spread. The 21 years of overlapping notes hold
+only about seven independent 3-year windows.
 
 ## What was surprising, what went wrong, and how it was diagnosed
 
@@ -160,6 +184,23 @@ published base taker fee of 10 bp. At any taker fee, every variant loses. A queu
 belongs to whoever is paid to provide liquidity, not to whoever takes it. Two hours of data is one
 sample, so this is an illustration of the method rather than a result to trade on.
 
+**S6: investors beat the model, and the sample is why to be careful.** Priced at 98, the notes
+delivered 101.20 on average. Only 2% of issues came in below 98, and the gap survives dropping the 2008,
+2009 and 2020 vintages (+2.28 ± 0.38). The reason is in the outcomes: the fair value charges for a
+3-year fall of more than 40%, and since 2005 the lowest SPY level at any 3-year maturity was 72%. VIX
+also exceeded the volatility that followed for 65% of issues. Two results surprised me. First, for 13
+issues between 2013 and 2016 the coupon that prices the note at 98 is negative: with VIX near 12 and
+3-year rates under 1%, a note with no coupon is already worth more than 98. Real notes paid positive
+coupons then because issuers fund above Treasuries and the note references the price index, which has
+a lower forward; both are left out here and stated. Second, the first version used a fixed 8% coupon,
+which put fair values as high as 112, terms no issuer would sell; setting the coupon at issue fixed that.
+The study begins in 2005, as specified, so it leaves out 2000–2002, when SPY fell 48% peak to trough.
+I first wrote here that a note issued in 2000 would very likely have lost capital, then checked the same
+total-return series. It would not: the 2000 issues end at 60–85% of their initial level. The April 2000
+note matures at 60.4%, just 0.4 points above the barrier. None of them autocalls, so investors get par
+back after three years with most coupons missed. Seven independent windows cannot show that the model
+overprices the crash; they show that a crash deep enough to breach 60% at a maturity date did not occur.
+
 **Testing across versions.** The libraries promise numpy ≥ 1.24, pandas ≥ 2.0 and scipy ≥ 1.10. I
 ran every suite in an environment with exactly those versions. Every test passed except my new
 regression pins: optimiser-fitted values move by up to 1e-5 relative between scipy 1.10 and 1.17,
@@ -182,8 +223,8 @@ What the studies need:
 - **S1 and S5** use volsurface's saved CBOE snapshot (`projects/volsurface/data/`, git-ignored; create it with
   `projects/volsurface/examples/snapshot.py`) for their real-data parts, and skip those parts without it.
 - **S4** uses microstructure-lab's Binance recordings, likewise git-ignored and created with its recorder.
-- **S3 and S4** download Yahoo Finance prices on first run and cache them in `data/`. They skip those parts
-  when offline.
+- **S3, S4 and S6** download Yahoo Finance prices on first run and cache them in `data/`. They skip those
+  parts when offline.
 
 Each library's own tests still run without the others installed: `cd projects/<repo> && pytest`.
 
@@ -194,7 +235,7 @@ quant-stack/
 ├── projects/          the five libraries (git submodules, tagged releases)
 ├── src/quantstack/
 │   └── adapters/      surface.py (Link A), notes.py (Link B), costs.py (Link D)
-├── studies/           S1-S5
+├── studies/           S1-S6
 ├── tests/             consistency and integration tests
 └── docs/              study outputs and plots; profile_README.md
 ```

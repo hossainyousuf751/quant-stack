@@ -47,6 +47,29 @@ def shift_schedule(product, elapsed: float):
     return replace(product, **changes)
 
 
+class _PayOn:
+    """A 'market' whose discount factor is 1 on one date and 0 elsewhere, to read off a single cash flow."""
+
+    def __init__(self, t: float):
+        self.t = t
+
+    def discount(self, t):
+        return float(np.isclose(t, self.t))
+
+
+def realised_cashflows(product, levels) -> np.ndarray:
+    """Cash flow the note pays on each observation date if the underlyings print `levels` (n_dates x n_assets).
+
+    Runs the product's own payoff on the one realised path, so coupons, memory and autocall follow exactly
+    the rules used for pricing. Only for European barrier monitoring: a knock-in watched between dates
+    needs the whole path, not the observation levels.
+    """
+    if getattr(product, "barrier_monitoring", "european") != "european":
+        raise ValueError("realised_cashflows needs barrier_monitoring='european'")
+    path = np.asarray(levels, dtype=float).reshape(1, len(product.simulation_times), -1)
+    return np.array([product.discounted_payoff(path, _PayOn(t))[0] for t in product.simulation_times])
+
+
 class StructuredNotePosition:
     """`quantity` units of an sppricer product, revalued by Monte Carlo in each scenario.
 

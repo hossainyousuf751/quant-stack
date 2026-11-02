@@ -6,7 +6,7 @@ from risklab import Scenario, full_revaluation_var
 from sppricer import BarrierReverseConvertible, Market, PhoenixAutocallable, price_mc
 from volsurface import fit_surface, synthetic_chain
 
-from quantstack.adapters.notes import GridNotePosition, StructuredNotePosition, shift_schedule
+from quantstack.adapters.notes import GridNotePosition, StructuredNotePosition, realised_cashflows, shift_schedule
 from quantstack.adapters.surface import local_vol_setup
 
 MARKET = Market.single(100.0, 0.25, 0.03, 0.01)
@@ -64,3 +64,16 @@ def test_local_vol_mode_reacts_to_surface_shifts():
     assert up < base and steeper < base                # the investor is short the down-and-in put
     with pytest.raises(ValueError, match="skew_shift needs"):
         StructuredNotePosition(note, market).value(Scenario(skew_shift=-0.1))
+
+
+def test_realised_cashflows_follow_the_payoff_rules():
+    note = PhoenixAutocallable(initial_levels=(100.0,), observation_times=(0.25, 0.5, 0.75, 1.0, 1.25),
+                               coupon_rate=0.02, coupon_barrier=0.7, protection_barrier=0.6, first_autocall_index=3)
+    called = realised_cashflows(note, [[90], [50], [80], [105], [120]])   # memory pays 2 coupons at t=0.75
+    np.testing.assert_allclose(called, [2, 0, 4, 102, 0])
+    np.testing.assert_allclose(realised_cashflows(note, [[50]] * 5), [0, 0, 0, 0, 50])  # knock-in at maturity
+    # with real discounting, the cash flows reproduce the product's discounted payoff
+    market = Market.single(spot=100, vol=0.2, rate=0.03)
+    path = np.array([[[90], [95], [99], [98], [101]]], dtype=float)
+    df = market.discount(np.asarray(note.simulation_times))
+    assert realised_cashflows(note, path[0]) @ df == pytest.approx(note.discounted_payoff(path, market)[0])

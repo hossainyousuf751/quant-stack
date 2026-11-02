@@ -25,7 +25,7 @@ flowchart LR
     RL -->|"estimators and allocators<br/>(plain callables)"| BT[backtest-lab]
     MS[microstructure-lab] -->|"calibrate_costs to SpreadImpactCost<br/>adapters/costs.py"| BT
     subgraph quant-stack
-      A[adapters, studies S1-S6, integration tests]
+      A[adapters, studies S1-S7, integration tests]
     end
 ```
 
@@ -53,6 +53,7 @@ asserts that the duplicates agree to 1e-12 on a grid of inputs and return the sa
 | [S4](studies/s4_costs_from_order_book.py) costs from the order book | Does a strong same-second order-flow relationship survive as a trade? | OFI (R² 0.59) loses after the spread alone. Queue imbalance survives spread, 1–5 s latency and the recorded book at small size, but covers at most 0.24 bp per unit traded, so any exchange taker fee kills it |
 | [S5](studies/s5_skew_option_var.py) skew in option VaR | How much does the smile's behaviour under spot moves change option VaR? | Sticky moneyness more than doubles a short straddle's 1-day VaR against sticky strike (0.82 vs 0.38 synthetic, 0.84 vs 0.32 SPX) |
 | [S6](studies/s6_autocallable_investors.py) how did autocallable investors do? | A SPY Phoenix issued monthly since 2005 at a model fair value of 98: what did investors actually receive? | Realised cash flows were worth 101.20 at the issue rate, +3.20 ± 0.72 (Newey-West) above the model. 94% autocalled, none lost capital, and the excess return over the 3-year rate was +1.1% ± 0.7% a year |
+| [S7](studies/s7_market_maker_risk.py) market-maker inventory risk | How bad is a bad session for an Avellaneda–Stoikov quoter in the order book, and do standard VaR models know? | Symmetric quotes earn 46–65% more but carry 5–13× the 97.5% ES. Normal VaR fails 4 of 6 books (32–47 exceptions against 15), and RiskMetrics EWMA finds none on the inventory books because it assumes zero-mean P&L. Historical and FHS pass |
 
 Each study prints its tables to [`docs/`](docs) (`s*_output.txt`, plus plots). All seeds are fixed.
 
@@ -130,6 +131,33 @@ VIX stands in for a 3-year ATM vol, with no skew or term structure. The note is 
 zero dividend yield, and the rate carries no issuer funding spread. The 21 years of overlapping notes hold
 only about seven independent 3-year windows.
 
+### S7: market-maker inventory risk
+
+![Return vs ES](docs/s7_mm_return_vs_es.png)
+
+microstructure-lab's Avellaneda–Stoikov quoter runs inside its order-book simulator for 2,500 independent
+5-minute sessions per setting. It uses the paper's inputs calibrated on the book, as in that repo's Study 4.
+risk-lab measures each P&L series and backtests its four VaR models over the last 1,500 sessions.
+
+| Session P&L (ticks) | Mean | Skew | Excess kurtosis | P(loss) | 99% VaR | 97.5% ES | Mean / ES |
+|---|---|---|---|---|---|---|---|
+| γ = 0.001, inventory | 31.6 | −0.57 | 0.8 | 9.9% | 37.0 | 37.7 | 0.84 |
+| γ = 0.001, symmetric | 46.2 | −1.29 | 6.3 | 16.7% | 169.0 | 182.9 | 0.25 |
+| **γ = 0.005, inventory** | **22.6** | −0.25 | 0.6 | **4.3%** | **10.0** | **11.9** | **1.90** |
+| γ = 0.005, symmetric | 36.8 | −1.03 | 4.9 | 17.8% | 143.0 | 149.3 | 0.25 |
+| γ = 0.02, inventory | 8.5 | −0.27 | 0.5 | 10.1% | 10.5 | 10.0 | 0.85 |
+| γ = 0.02, symmetric | 14.0 | −1.00 | 5.9 | 21.6% | 70.0 | 72.8 | 0.19 |
+
+| 99% VaR backtest, 6 books | Kupiec passes (p > 0.05) | Exceptions (15 expected) | 97.5% ES (Z2) |
+|---|---|---|---|
+| historical, 500 sessions | 6 of 6 | 13–21 | passes everywhere |
+| filtered historical (FHS), 1,000 | 5 of 6 | 11–24 | passes everywhere |
+| normal, 500 | 2 of 6, both at p = 0.054 | 23–47 | rejected on 4 books (−0.96 to −1.35) |
+| EWMA (RiskMetrics) | 3 of 6: symmetric books only | 0 on every inventory book | far too conservative on inventory books |
+
+In the paper's own fill model, not one of 2,500 sessions loses money (the worst is +43), so a loss VaR
+there is meaningless. Losses come from the order book's queue position and adverse selection.
+
 ## What was surprising, what went wrong, and how it was diagnosed
 
 **S1: a "skew-aware" flat vol overshoots.** Pricing the note with flat vol taken at the barrier
@@ -201,6 +229,22 @@ note matures at 60.4%, just 0.4 points above the barrier. None of them autocalls
 back after three years with most coupons missed. Seven independent windows cannot show that the model
 overprices the crash; they show that a crash deep enough to breach 60% at a maturity date did not occur.
 
+**S7: the model that failed for the opposite reason, and a library number that moved.** I expected
+normal VaR to fail on the symmetric quoter, whose P&L has excess kurtosis near 6 and a fat left tail, and it
+did, with 32–47 exceptions against 15. The surprise was RiskMetrics EWMA, which recorded zero exceptions on
+every inventory book. It assumes zero-mean returns, but these books earn 1.2–1.7 standard deviations per
+session on average. EWMA therefore reads the mean as volatility and sets VaR 2.6–5.7× too high (61 against 11
+at γ = 0.005). Fed into a limit framework, that would cap the safest quoter hardest. Sessions are
+independent by construction, so FHS has no clustering to exploit; it passes because its residuals are
+empirical. Its one Kupiec rejection (p = 0.032) is in line with 24 tests at a 5% level.
+
+Running 2,500 sessions instead of 200 also moved a number in microstructure-lab's README. Its γ = 0.005
+inventory row shows a mean P&L of 19.4. The first 200 sessions here reproduce that exactly, but the full
+2,500 average 22.6 ± 0.26, and five fresh blocks on unused seeds give 21.3–24.1. Seeds 0–199 were a
+low draw, about 3.5 standard errors under the mean. Inventory control costs 32–40% of mean P&L rather than
+the published 33–45%; the conclusion is unchanged. The library README is left as published until the
+owner approves a change.
+
 **Testing across versions.** The libraries promise numpy ≥ 1.24, pandas ≥ 2.0 and scipy ≥ 1.10. I
 ran every suite in an environment with exactly those versions. Every test passed except my new
 regression pins: optimiser-fitted values move by up to 1e-5 relative between scipy 1.10 and 1.17,
@@ -223,6 +267,7 @@ What the studies need:
 - **S1 and S5** use volsurface's saved CBOE snapshot (`projects/volsurface/data/`, git-ignored; create it with
   `projects/volsurface/examples/snapshot.py`) for their real-data parts, and skip those parts without it.
 - **S4** uses microstructure-lab's Binance recordings, likewise git-ignored and created with its recorder.
+- **S7** is fully offline (simulated order book), about 7 minutes.
 - **S3, S4 and S6** download Yahoo Finance prices on first run and cache them in `data/`. They skip those
   parts when offline.
 
@@ -235,7 +280,7 @@ quant-stack/
 ├── projects/          the five libraries (git submodules, tagged releases)
 ├── src/quantstack/
 │   └── adapters/      surface.py (Link A), notes.py (Link B), costs.py (Link D)
-├── studies/           S1-S6
+├── studies/           S1-S7
 ├── tests/             consistency and integration tests
 └── docs/              study outputs and plots; profile_README.md
 ```

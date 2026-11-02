@@ -169,3 +169,21 @@ re-pinned to the released commit.
 - A README claim that 2000 issues would have lost capital was checked against data and was wrong: they end at
   60–85%, and April 2000 matures at 60.4%. Corrected.
 - quant-stack tests: 18 → 19.
+
+## 2026-11-02: Study S7, market-maker inventory risk (Link E)
+
+- **Setup:** `studies/s7_market_maker_risk.py` runs the Avellaneda–Stoikov quoter in lobkit's order book: 2,500
+  sessions of 5 minutes for γ ∈ {0.001, 0.005, 0.02} × {inventory, symmetric}. risk-lab measures session P&L
+  tails and backtests four VaR models on sessions 1,001–2,500. It runs offline in about 7 minutes.
+- **Tails:** in the paper's fill model no session loses money. In the book, γ = 0.005 inventory has the best
+  mean/ES (1.90). Symmetric quotes earn 46–65% more with 5–13× the ES.
+- **Backtests:**
+  - Historical passes 6 of 6 and FHS 5 of 6 (one rejection at p = 0.032, in line with 24 tests).
+  - Normal fails 4 of 6, and its ES is rejected by Z2 on 4 books.
+  - EWMA has 0 exceptions on every inventory book: it assumes zero-mean P&L, so it overstates VaR 2.6–5.7×.
+- **Checks:**
+  - risk-lab VaR models across input units: exact for three; FHS moves the mean VaR by 0.1% (GARCH optima).
+  - The first 200 sessions reproduce microstructure-lab's README row exactly.
+- **Finding for microstructure-lab, not acted on (needs approval):** its γ = 0.005 inventory mean of 19.4
+  (seeds 0–199) is a low draw. 2,500 sessions give 22.6 ± 0.26, and fresh seed blocks give 21.3–24.1. Inventory
+  control costs 32–40% of mean P&L, not 33–45%.

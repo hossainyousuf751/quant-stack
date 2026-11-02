@@ -8,11 +8,11 @@ C = ["#4C72B0", "#DD8452", "#55A868", "#C44E52", "#8172B3", "#937860"]
 LS = ["-", "--", "-.", ":", (0, (5, 1)), (0, (3, 1, 1, 1))]
 
 
-def finish(fig, ax, name: str, title: str) -> Path:
+def finish(fig, ax, name: str, title: str) -> str:
+    """Save to docs/ and return the path relative to the repo root (printed, so no local folders leak)."""
     ax.set_title(title, loc="left", fontweight="bold")
     ax.spines[["top", "right"]].set_visible(False)
     ax.legend(frameon=False)
     fig.tight_layout()
-    path = DOCS / name
-    fig.savefig(path, dpi=150, bbox_inches="tight")
-    return path
+    fig.savefig(DOCS / name, dpi=150, bbox_inches="tight")
+    return f"docs/{name}"

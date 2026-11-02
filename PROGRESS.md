@@ -118,6 +118,24 @@ pushed.
 | quant-stack | 18 |
 
 **Not done, needs you:**
-- Pushing (see below).
 - Deleting the old top-level folders (`/sp-pricer` and the others), which were locked during setup and are
   git-ignored.
+
+## 2026-11-02: Releases, pushed one repo at a time
+
+Each library was merged by PR. CI on `main` was checked before the next one started, and quant-stack was
+re-pinned to the released commit.
+
+| Repo | PR | Release | Pinned commit | Checks |
+|---|---|---|---|---|
+| volsurface | #6, merge | `v0.2.0` | 132c38c | `main` CI green |
+| sp-pricer | #1, merge | `v0.2.0` | 95fafc6 | `main` CI green |
+| risk-lab | #1, merge | `v0.3.0`, `v0.4.0` | 05fd489 | `main` CI green |
+| backtest-lab | #9, merge | `v0.4.0`, tagged by publish.yml | c5dce70 | PyPI btlab 0.4.0 installs |
+| microstructure-lab | #10, squash | `v0.3.0`, tagged by release-please | 91b9feb | PyPI lobkit 0.3.0 installs |
+
+- backtest-lab: CI on pytest 8.3 and later rejected `pytest.approx` on a nested dict. Fixed with `==` before
+  merging.
+- microstructure-lab: the squash commit's tree matches the tested branch exactly. The release commit
+  changes only the version, manifest and changelog. The two failed runs on the release PR started no jobs:
+  the bot merged the PR and deleted its branch first. The 0.2.2 release shows the same pattern.

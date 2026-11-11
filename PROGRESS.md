@@ -187,3 +187,28 @@ re-pinned to the released commit.
 - **Finding for microstructure-lab, not acted on (needs approval):** its γ = 0.005 inventory mean of 19.4
   (seeds 0–199) is a low draw. 2,500 sessions give 22.6 ± 0.26, and fresh seed blocks give 21.3–24.1. Inventory
   control costs 32–40% of mean P&L, not 33–45%.
+
+## 2026-11-11: PyPI releases
+
+Three PyPI names were taken by unrelated projects: `quantstack`, `volsurface` and `risklab`. The look-alikes
+`quant-stack` and `risk-lab` would be rejected too. The owner chose new distribution names; the import names
+are unchanged.
+
+| Repo | PyPI | Release | Checks |
+|---|---|---|---|
+| sp-pricer | `sppricer` | v0.2.1 (adds the MIT licence the repo lacked) | PyPI install: 28 passed |
+| volsurface | `volsurface-lab` | v0.2.1 | PyPI install: 47 passed |
+| risk-lab | `marketrisk-lab` | v0.4.1 | PyPI install: 50 passed |
+| quant-stack | `quantstack-lab` | v0.1.0 (adds the MIT licence it declared) | wheel + five libraries from PyPI: 14 passed, 5 submodule guards skipped |
+
+None of the library releases change any code. Each uses backtest-lab's `publish.yml` with trusted
+publishing. The quant-stack pins renamed each dependency in the same commit, so pip never resolves a name
+to the unrelated package.
+
+Caught on the way:
+- `dist/` was committed in the volsurface PR. It was amended out, and `dist/` and `build/` were ignored
+  there and here.
+- A `grep -c $'\r'` line-ending check gave false readings. Rechecked on raw bytes: every file is LF.
+- Stale `volsurface`/`risklab` registrations from old editable installs were removed locally.
+- PyPI allows only 3 pending publishers at once, so `quantstack-lab` was registered after the libraries
+  published.

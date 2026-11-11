@@ -7,13 +7,13 @@ quant-stack holds five independent libraries as git submodules, pinned to tagged
 connects them through small adapters and runs cross-project studies on top. No library imports
 another, and none imports quant-stack. Each still installs, tests and releases on its own.
 
-| Project | Package | What it does |
+| Project | `pip install` (import) | What it does |
 |---|---|---|
 | [sp-pricer](https://github.com/hossainyousuf751/sp-pricer) | `sppricer` | Monte Carlo pricing of Phoenix autocallables and reverse convertibles, Greeks, barrier monitoring; Dupire local vol and term structure from v0.2 |
-| [volsurface](https://github.com/hossainyousuf751/volsurface) | `volsurface` | Arbitrage-free implied vol surfaces (SVI, SSVI, eSSVI, arbitrage-free SVI) from raw quotes, Dupire local vol, scenario shifts |
+| [volsurface](https://github.com/hossainyousuf751/volsurface) | `volsurface-lab` (`volsurface`) | Arbitrage-free implied vol surfaces (SVI, SSVI, eSSVI, arbitrage-free SVI) from raw quotes, Dupire local vol, scenario shifts |
 | [backtest-lab](https://github.com/hossainyousuf751/backtest-lab) | `btlab` | Backtesting with look-ahead tests, Deflated Sharpe, PBO, walk-forward, pluggable cost models, covariance strategies |
 | [microstructure-lab](https://github.com/hossainyousuf751/microstructure-lab) | `lobkit` | Order-book reconstruction, order-flow imbalance, micro-price, Avellaneda–Stoikov; cost calibration and bars |
-| [risk-lab](https://github.com/hossainyousuf751/risk-lab) | `risklab` | VaR/ES models and backtests, DCC-GARCH, shrinkage, HRP; scenario full-revaluation VaR and stress tests |
+| [risk-lab](https://github.com/hossainyousuf751/risk-lab) | `marketrisk-lab` (`risklab`) | VaR/ES models and backtests, DCC-GARCH, shrinkage, HRP; scenario full-revaluation VaR and stress tests |
 
 ## How the pieces connect
 
@@ -36,30 +36,30 @@ small interface:
 - risk-lab's `Position` is anything with `value(scenario)`.
 - btlab's `CostModel` is anything with `cost(trade, date, context)`.
 
-quant-stack wires real objects into those interfaces in [`src/quantstack/adapters/`](src/quantstack/adapters), and
+quant-stack wires real objects into those interfaces in [`src/quantstack/adapters/`](https://github.com/hossainyousuf751/quant-stack/tree/main/src/quantstack/adapters), and
 nowhere else.
 
 The libraries also duplicate a few small pieces on purpose instead of sharing a core package: three
-Black-Scholes implementations and two yfinance loaders. [`tests/test_consistency.py`](tests/test_consistency.py)
+Black-Scholes implementations and two yfinance loaders. [`tests/test_consistency.py`](https://github.com/hossainyousuf751/quant-stack/blob/main/tests/test_consistency.py)
 asserts that the duplicates agree to 1e-12 on a grid of inputs and return the same data format.
 
 ## Studies
 
 | Study | Question | Headline result |
 |---|---|---|
-| [S1](studies/s1_skew_autocallable.py) skew and the autocallable | What does pricing off the smile do to a Phoenix? | On the 2026-10-30 SPX/NDX close, local vol lowers the worst-of note from 100.44 to 96.44 per 100 (−4.00 ± 0.04 SE). The synthetic notes fall by 3.4 and 5.8 |
-| [S2](studies/s2_note_book_risk.py) risk of a structured-note book | Where do linear VaR approximations break? | Delta-normal VaR of the delta-hedged book is 0, against 90 under full revaluation. Delta-gamma-vega overstates it at 152 |
-| [S3](studies/s3_risk_portfolios_backtest.py) risk-based portfolios, honestly backtested | Do risk-lab's rankings survive costs, lag and selection? | Long-only minimum variance keeps the lowest true risk (9.5% vs 15.1% for 1/N) after lag and costs. Best of 24 configurations: Deflated Sharpe 0.94, walk-forward out-of-sample Sharpe 0.59. HRP's turnover barely falls with the window on synthetic data but falls 4× on real ETFs |
-| [S4](studies/s4_costs_from_order_book.py) costs from the order book | Does a strong same-second order-flow relationship survive as a trade? | OFI (R² 0.59) loses after the spread alone. Queue imbalance survives spread, 1–5 s latency and the recorded book at small size, but covers at most 0.24 bp per unit traded, so any exchange taker fee kills it |
-| [S5](studies/s5_skew_option_var.py) skew in option VaR | How much does the smile's behaviour under spot moves change option VaR? | Sticky moneyness more than doubles a short straddle's 1-day VaR against sticky strike (0.82 vs 0.38 synthetic, 0.84 vs 0.32 SPX) |
-| [S6](studies/s6_autocallable_investors.py) how did autocallable investors do? | A SPY Phoenix issued monthly since 2005 at a model fair value of 98: what did investors actually receive? | Realised cash flows were worth 101.20 at the issue rate, +3.20 ± 0.72 (Newey-West) above the model. 94% autocalled, none lost capital, and the excess return over the 3-year rate was +1.1% ± 0.7% a year |
-| [S7](studies/s7_market_maker_risk.py) market-maker inventory risk | How bad is a bad session for an Avellaneda–Stoikov quoter in the order book, and do standard VaR models know? | Symmetric quotes earn 46–65% more but carry 5–13× the 97.5% ES. Normal VaR fails 4 of 6 books (32–47 exceptions against 15), and RiskMetrics EWMA finds none on the inventory books because it assumes zero-mean P&L. Historical and FHS pass |
+| [S1](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s1_skew_autocallable.py) skew and the autocallable | What does pricing off the smile do to a Phoenix? | On the 2026-10-30 SPX/NDX close, local vol lowers the worst-of note from 100.44 to 96.44 per 100 (−4.00 ± 0.04 SE). The synthetic notes fall by 3.4 and 5.8 |
+| [S2](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s2_note_book_risk.py) risk of a structured-note book | Where do linear VaR approximations break? | Delta-normal VaR of the delta-hedged book is 0, against 90 under full revaluation. Delta-gamma-vega overstates it at 152 |
+| [S3](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s3_risk_portfolios_backtest.py) risk-based portfolios, honestly backtested | Do risk-lab's rankings survive costs, lag and selection? | Long-only minimum variance keeps the lowest true risk (9.5% vs 15.1% for 1/N) after lag and costs. Best of 24 configurations: Deflated Sharpe 0.94, walk-forward out-of-sample Sharpe 0.59. HRP's turnover barely falls with the window on synthetic data but falls 4× on real ETFs |
+| [S4](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s4_costs_from_order_book.py) costs from the order book | Does a strong same-second order-flow relationship survive as a trade? | OFI (R² 0.59) loses after the spread alone. Queue imbalance survives spread, 1–5 s latency and the recorded book at small size, but covers at most 0.24 bp per unit traded, so any exchange taker fee kills it |
+| [S5](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s5_skew_option_var.py) skew in option VaR | How much does the smile's behaviour under spot moves change option VaR? | Sticky moneyness more than doubles a short straddle's 1-day VaR against sticky strike (0.82 vs 0.38 synthetic, 0.84 vs 0.32 SPX) |
+| [S6](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s6_autocallable_investors.py) how did autocallable investors do? | A SPY Phoenix issued monthly since 2005 at a model fair value of 98: what did investors actually receive? | Realised cash flows were worth 101.20 at the issue rate, +3.20 ± 0.72 (Newey-West) above the model. 94% autocalled, none lost capital, and the excess return over the 3-year rate was +1.1% ± 0.7% a year |
+| [S7](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s7_market_maker_risk.py) market-maker inventory risk | How bad is a bad session for an Avellaneda–Stoikov quoter in the order book, and do standard VaR models know? | Symmetric quotes earn 46–65% more but carry 5–13× the 97.5% ES. Normal VaR fails 4 of 6 books (32–47 exceptions against 15), and RiskMetrics EWMA finds none on the inventory books because it assumes zero-mean P&L. Historical and FHS pass |
 
-Each study prints its tables to [`docs/`](docs) (`s*_output.txt`, plus plots). All seeds are fixed.
+Each study prints its tables to [`docs/`](https://github.com/hossainyousuf751/quant-stack/tree/main/docs) (`s*_output.txt`, plus plots). All seeds are fixed.
 
 ### S1: skew and the autocallable
 
-![Price vs barrier](docs/s1_price_vs_barrier_spx.png)
+![Price vs barrier](https://raw.githubusercontent.com/hossainyousuf751/quant-stack/main/docs/s1_price_vs_barrier_spx.png)
 
 The note is sp-pricer's README note: 3 years, quarterly, a 2% memory coupon, autocall at 100% from
 year 1, and 60% European protection. Every product here is short a down-and-in put, so the put skew
@@ -71,7 +71,7 @@ drives its value. Three models price the same note on the same forward curves an
 | flat vol at the 60% strike | 94.15 | −6.29 ± 0.04 | 42.4% | 17.7% |
 | Dupire local vol (arbitrage-free SVI) | **96.44** | **−4.00 ± 0.04** | 57.4% | 11.2% |
 
-The local-vol pipeline is validated first, in [`tests/test_link_a.py`](tests/test_link_a.py). Monte
+The local-vol pipeline is validated first, in [`tests/test_link_a.py`](https://github.com/hossainyousuf751/quant-stack/blob/main/tests/test_link_a.py). Monte
 Carlo prices of 20 vanillas under sp-pricer's `LocalVolModel` imply back the volsurface surface's
 own vols within 2.5 standard errors. Flat ATM vol misses the same targets by up to 940.
 
@@ -81,7 +81,7 @@ Halving or doubling the time step moves the worst-of note by no more than its st
 
 ### S2: risk of a structured-note book
 
-![P&L profile](docs/s2_pnl_profile.png)
+![P&L profile](https://raw.githubusercontent.com/hossainyousuf751/quant-stack/main/docs/s2_pnl_profile.png)
 
 A dealer is short four notes on two underlyings and may delta-hedge with shares. Each method gives a
 10-day 99% VaR (lognormal scenarios, with implied vol falling 0.8 points per 1% rise in A):
@@ -110,7 +110,7 @@ risk-lab Study 3's books, priced off a fitted smile instead of one flat vol, wit
 
 ### S6: how did autocallable investors actually do?
 
-![Realised vs fair](docs/s6_fair_vs_realised.png)
+![Realised vs fair](https://raw.githubusercontent.com/hossainyousuf751/quant-stack/main/docs/s6_fair_vs_realised.png)
 
 A 3-year SPY Phoenix is issued on the first trading day of every month from 2005 to 2025: quarterly
 observations, a memory coupon above 70%, autocall at 100% from year 1, and 60% European protection.
@@ -133,7 +133,7 @@ only about seven independent 3-year windows.
 
 ### S7: market-maker inventory risk
 
-![Return vs ES](docs/s7_mm_return_vs_es.png)
+![Return vs ES](https://raw.githubusercontent.com/hossainyousuf751/quant-stack/main/docs/s7_mm_return_vs_es.png)
 
 microstructure-lab's Avellaneda–Stoikov quoter runs inside its order-book simulator for 2,500 independent
 5-minute sessions per setting. It uses the paper's inputs calibrated on the book, as in that repo's Study 4.
@@ -250,6 +250,16 @@ ran every suite in an environment with exactly those versions. Every test passed
 regression pins: optimiser-fitted values move by up to 1e-5 relative between scipy 1.10 and 1.17,
 and one penalised SVI fit settles on a different optimum (0.1815 vs 0.1790, both printed as 0.18).
 The pins now hold each figure to the precision the README actually prints.
+
+## Install
+
+```bash
+pip install quantstack-lab        # the adapters (import quantstack) and all five libraries from PyPI
+```
+
+`volsurface` and `risk-lab` are published as `volsurface-lab` and `marketrisk-lab`, because the names
+`volsurface` and `risklab` belong to unrelated projects on PyPI; their import names are unchanged. The
+studies, tests and plots are not part of the package. To run them, clone the repository as below.
 
 ## Reproduce
 

@@ -3,13 +3,28 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "quantstack"
+name = "quantstack-lab"
 version = "0.1.0"
 description = "A connected quantitative finance research stack: structured product pricing, volatility surfaces, honest backtesting, market microstructure and risk, linked into end-to-end studies."
+readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
-# The five libraries are installed from projects/ (git submodules) before this package; see README.
-dependencies = ["sppricer", "volsurface-lab", "btlab", "lobkit", "marketrisk-lab"]
+# The five libraries are pre-1.0, so each is capped below its next minor version: a minor release may
+# change an API the adapters use. In a clone, CI installs them from projects/ (git submodules) first.
+dependencies = [
+    "sppricer>=0.2.1,<0.3",
+    "volsurface-lab>=0.2.1,<0.3",
+    "btlab>=0.4.0,<0.5",
+    "lobkit>=0.3.0,<0.4",
+    "marketrisk-lab>=0.4.1,<0.5",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pandas>=2.0",
+]
+
+[project.urls]
+Repository = "https://github.com/hossainyousuf751/quant-stack"
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "matplotlib>=3.7"]

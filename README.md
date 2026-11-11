@@ -261,6 +261,44 @@ pip install quantstack-lab        # the adapters (import quantstack) and all fiv
 `volsurface` and `risklab` belong to unrelated projects on PyPI; their import names are unchanged. The
 studies, tests and plots are not part of the package. To run them, clone the repository as below.
 
+## Quick start
+
+All three steps use the PyPI packages only and run offline in a few seconds. A test runs this exact block,
+so it stays in sync with the code.
+
+```python
+import numpy as np
+from risklab import full_revaluation_var, gbm_scenarios
+from sppricer import PhoenixAutocallable, price_mc
+from volsurface import fit_surface, synthetic_chain
+
+from quantstack.adapters.notes import GridNotePosition, StructuredNotePosition
+from quantstack.adapters.surface import local_vol_setup
+
+# 1. volsurface: fit an arbitrage-free SSVI surface to an option chain (synthetic here, so it runs offline)
+quotes, truth = synthetic_chain(seed=0)
+surface = fit_surface(quotes, truth["spot"]).ssvi_surface
+
+# 2. sp-pricer: a 2-year Phoenix priced off the surface's local vol, against one flat ATM vol
+atm = float(surface.implied_vol(surface.curve.forward(2.0), 2.0))
+market, local_vol = local_vol_setup([surface], flat_vols=[atm])
+note = PhoenixAutocallable((float(market.spots[0]),), tuple(0.25 * k for k in range(1, 9)),
+                           coupon_rate=0.02, first_autocall_index=3)
+flat = price_mc(note, market, 50_000, seed=1)
+skew = price_mc(note, market, 50_000, seed=1, model=local_vol)
+print(f"flat ATM vol {atm:.1%}: {flat.price:.2f} +/- {flat.std_error:.2f}")   # 104.74 +/- 0.02
+print(f"local vol:          {skew.price:.2f} +/- {skew.std_error:.2f}")      # 102.03 +/- 0.05
+
+# 3. risk-lab: 10-day 99% VaR of holding 1,000 notes, full revaluation (flat vol) on a price grid
+book = GridNotePosition(StructuredNotePosition(note, market, quantity=1_000), elapsed=10 / 252)
+scenarios = gbm_scenarios(np.array([[atm**2 / 252]]), n_scenarios=10_000, horizon_days=10)
+risk = full_revaluation_var([book], scenarios, alpha=0.01)
+print(f"10-day 99% VaR {risk['var']:,.0f}, ES {risk['es']:,.0f}")                  # VaR 77, ES 135
+```
+
+Pricing off the smile takes about 2.7 points off the note: it is short a down-and-in put, and the put
+skew makes that put dearer than one flat vol does. Study S1 below does this on real SPX/NDX surfaces.
+
 ## Reproduce
 
 ```bash

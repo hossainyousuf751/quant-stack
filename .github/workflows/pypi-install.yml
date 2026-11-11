@@ -1,0 +1,42 @@
+name: pypi-install
+
+# Weekly check that the published stack still installs and works for a user who only has PyPI:
+# install the latest quantstack-lab (which pulls the five libraries from PyPI, with today's numpy,
+# scipy and pandas), then run the tests shipped in that same version's sdist. Using the sdist's
+# tests, not main's, means a release is only judged against its own tests. No repository checkout,
+# so nothing local can leak in; the submodule guards skip by design.
+on:
+  schedule:
+    - cron: "0 6 * * 1"          # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  installed-from-pypi:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install quantstack-lab and its libraries from PyPI
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir "quantstack-lab[dev]"
+          pip check
+          pip list | grep -iE "^(quantstack-lab|sppricer|volsurface-lab|btlab|lobkit|marketrisk-lab|numpy|scipy|pandas) "
+      - name: Fetch the tests shipped with that version
+        run: |
+          version=$(python -c "import importlib.metadata as m; print(m.version('quantstack-lab'))")
+          pip download --no-deps --no-binary :all: --no-cache-dir "quantstack-lab==$version" -d sdist
+          tar -xzf "sdist/quantstack_lab-$version.tar.gz"
+          echo "SRC=quantstack_lab-$version" >> "$GITHUB_ENV"
+      - name: Run them against the installed packages
+        working-directory: ${{ env.SRC }}
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python -I -c "import quantstack, sppricer, volsurface, btlab, lobkit, risklab as r; assert all('site-packages' in m.__file__ for m in (quantstack, sppricer, volsurface, btlab, lobkit, r))"
+          python -m pytest -q -rs tests

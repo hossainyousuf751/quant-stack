@@ -212,3 +212,15 @@ Caught on the way:
 - Stale `volsurface`/`risklab` registrations from old editable installs were removed locally.
 - PyPI allows only 3 pending publishers at once, so `quantstack-lab` was registered after the libraries
   published.
+
+## 2026-11-11: Quick start and a weekly PyPI check
+
+- README "Quick start" runs the three links using PyPI packages only: SSVI surface → local-vol Phoenix price →
+  10-day VaR of a note holding. `tests/test_quickstart.py` executes the README block itself, so it can't go
+  stale. Its numbers are checked to within one printed unit: a pin on the exact rounded digits would be
+  brittle, since 102.03 sits 0.004 from a rounding boundary.
+- A first draft valued a *short* note position. Its VaR equalled its ES (193 = 193) because the note's value
+  peaks near today's spot, so the short's worst case is simply accretion. That was correct but a poor example,
+  so it now holds the note (VaR 77, ES 135).
+- `.github/workflows/pypi-install.yml` runs weekly and on demand. It installs the latest `quantstack-lab` from
+  PyPI with today's numpy, scipy and pandas, then runs the tests from that version's own sdist.

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Allow sppricer 0.3 (adds likelihood-ratio Greeks, `lr_greeks`; no change to prices). The repo pins
+  sp-pricer v0.3.0.
+
 ## 0.1.1 (2026-11-14)
 
 No code changes to the adapters.

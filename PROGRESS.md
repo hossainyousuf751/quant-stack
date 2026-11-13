@@ -236,3 +236,31 @@ Caught on the way:
   identical in code to 0.3.0: only the version, CHANGELOG, README, chart and example differ. Lesson: read
   `release-please-config.json` before merging there. Any commit type with a visible section releases.
 - quant-stack pins microstructure-lab v0.3.1, and quantstack-lab 0.1.1 ships the tested Quick start to PyPI.
+
+## 2026-11-14: Study S8, issuers' estimated value (plus the work it needed)
+
+- **vol-snapshots** (private) now collects RUT too, from 2026-11-13. The bot's commit-and-push ran for the
+  first time ("Snapshot 2026-11-13"), so the whole pipeline is proven.
+- **SEC access:** requests to sec.gov carry the owner's personal contact as their User-Agent, per SEC's
+  fair-access policy. A security plugin refused the work address. The contact is not in any file or commit.
+- **Finding notes:** EDGAR full-text search, then reading the filings. Note terms are hand-entered into
+  `studies/s8_notes/notes.csv` with EDGAR links, per CLAUDE.md's rule against extraction logic. Scratch
+  triage scripts stayed in the scratchpad.
+  - Final terms appear 1–2 business days after pricing, so Nov 13 finals arrive Nov 16–17.
+  - RUT can't be backfilled for Oct 30, since CBOE serves only the latest session. So the Oct 30 notes
+    must be SPX/NDX only.
+- **sp-pricer 0.4.0** (PR #5, CI green): `autocall_indices` for monthly-coupon, quarterly-call notes.
+  **Merge awaits the owner's explicit OK**, because it publishes to PyPI. The two S8 notes don't need it.
+- **S8 result.** Two Citigroup NDX/SPX notes, same structure and day, coupons 8.00% and 9.85%:
+  - The coupon gap reproduces: $14.03 against Citi's $13.20.
+  - Our local-vol fair values are about $13 below Citi's estimates, so the implied funding spread is negative:
+    −148 to −159 bp against the option-implied curve, −98 to −110 bp against Treasuries.
+  - Ruled out: surface coverage (3.14y > 3.0y) and spot alignment (exact). Measured: the rate basis (65 bp,
+    about $4).
+  - Remaining explanation: model risk in the embedded put. Two notes from one issuer is a small sample.
+- **Bugs caught along the way:**
+  - A loop-variable closure (flagged by ruff B023).
+  - A correlation clip that also clipped the diagonal.
+  - A bad exclusion filter: "Dow Jones" also matches "S&P Dow Jones Indices".
+  - Yahoo silently returning empty tickers; the loader now validates, retries and never caches a gap.
+  - The S8 notes test now skips in the PyPI sdist, which has no `studies/`.

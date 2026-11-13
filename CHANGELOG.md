@@ -5,8 +5,8 @@
 - Study S8: issuers' published estimated value against quant-stack fair value, on real notes, with terms
   hand-entered from SEC filings (`studies/s8_notes/`).
 
-- Allow sppricer 0.3 (adds likelihood-ratio Greeks, `lr_greeks`; no change to prices). The repo pins
-  sp-pricer v0.3.0.
+- Allow sppricer 0.3 and 0.4 (likelihood-ratio Greeks; callable dates via `autocall_indices`; no change
+  to prices). The repo pins sp-pricer v0.4.0.
 
 ## 0.1.1 (2026-11-14)
 

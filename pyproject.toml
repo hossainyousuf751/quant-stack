@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantstack-lab"
-version = "0.1.0"
+version = "0.1.1"
 description = "A connected quantitative finance research stack: structured product pricing, volatility surfaces, honest backtesting, market microstructure and risk, linked into end-to-end studies."
 readme = "README.md"
 license = "MIT"

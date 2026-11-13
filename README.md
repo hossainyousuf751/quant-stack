@@ -239,11 +239,11 @@ independent by construction, so FHS has no clustering to exploit; it passes beca
 empirical. Its one Kupiec rejection (p = 0.032) is in line with 24 tests at a 5% level.
 
 Running 2,500 sessions instead of 200 also moved a number in microstructure-lab's README. Its γ = 0.005
-inventory row shows a mean P&L of 19.4. The first 200 sessions here reproduce that exactly, but the full
+inventory row showed a mean P&L of 19.4. The first 200 sessions here reproduce that exactly, but the full
 2,500 average 22.6 ± 0.26, and five fresh blocks on unused seeds give 21.3–24.1. Seeds 0–199 were a
 low draw, about 3.5 standard errors under the mean. Inventory control costs 32–40% of mean P&L rather than
-the published 33–45%; the conclusion is unchanged. The library README is left as published until the
-owner approves a change.
+the 33–45% it published; the conclusion is unchanged. microstructure-lab v0.3.1 now runs its
+Study 4 with 2,500 episodes per row, and its table shows these values.
 
 **Testing across versions.** The libraries promise numpy ≥ 1.24, pandas ≥ 2.0 and scipy ≥ 1.10. I
 ran every suite in an environment with exactly those versions. Every test passed except my new

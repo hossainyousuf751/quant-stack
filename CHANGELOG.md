@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 (2026-11-14)
+
+No code changes to the adapters.
+- README: a tested Quick start (surface → local-vol price → VaR) using the PyPI packages only, so the
+  PyPI page shows how to use the package.
+- Pinned microstructure-lab v0.3.1 (lobkit 0.3.1, docs only: Study 4 rerun with 2,500 episodes per row).
+- A weekly `pypi-install` workflow installs the latest release from PyPI and runs its own tests.
+
 ## 0.1.0 (2026-11-11)
 
 First release on PyPI, as `quantstack-lab` (`pip install quantstack-lab`; the import is `quantstack`). The

@@ -224,3 +224,15 @@ Caught on the way:
   so it now holds the note (VaR 77, ES 135).
 - `.github/workflows/pypi-install.yml` runs weekly and on demand. It installs the latest `quantstack-lab` from
   PyPI with today's numpy, scipy and pandas, then runs the tests from that version's own sdist.
+
+## 2026-11-14: microstructure-lab Study 4 rerun, and an unplanned lobkit 0.3.1
+
+- microstructure-lab: example 05 now runs 2,500 episodes per row (was 200). The table, the chart and every range
+  quoted from them were regenerated, per its rule that README numbers come from scripts. The γ = 0.005
+  inventory mean moves from 19.4 to 22.6, and inventory control costs 32–40% of mean P&L (was 33–45%). The
+  conclusions are unchanged.
+- **Unplanned release.** I said a `docs:` PR would not release. But microstructure-lab's release-please config
+  lists `docs` as a visible changelog section, so the merge released **lobkit 0.3.1** to PyPI. It is checked
+  identical in code to 0.3.0: only the version, CHANGELOG, README, chart and example differ. Lesson: read
+  `release-please-config.json` before merging there. Any commit type with a visible section releases.
+- quant-stack pins microstructure-lab v0.3.1, and quantstack-lab 0.1.1 ships the tested Quick start to PyPI.

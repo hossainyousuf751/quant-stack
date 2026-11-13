@@ -1,0 +1,14 @@
+S8: issuer estimated value vs quant-stack fair value (100,000 paths, seed 8, local vol dt 1/252)
+
+         coupon_pa   fee  issuer_ev  fair_lv   se  fair_flat_atm  implied_spread_bp  fair_tsy  spread_over_tsy_bp
+note                                                                                                             
+C-034243     7.99% 15.00     968.60   954.78 0.60         980.48            -159.05    959.03             -109.52
+C-034250     9.84%  0.00     981.80   968.81 0.61         999.54            -147.76    973.12              -98.23
+
+Inputs: realised 1y correlation C-034243 0.923, C-034250 0.923; rate to maturity: option-implied 4.96%, 4.96%, Treasury 4.31%, 4.31%
+fair_lv and implied_spread_bp discount at the SPX option-implied curve; fair_tsy and spread_over_tsy_bp at Treasuries. A negative spread means the issuer values the note above our model at that curve.
+Correlation -/+ 0.05, fair value: C-034243 950.91 / 959.70; C-034250 965.12 / 973.52
+
+Same issuer, day and structure, different coupon (C-034243 vs C-034250):
+  issuer's estimated values differ by +13.20
+  our fair values differ by           +14.03 (same paths for both notes, so the difference is free of most Monte Carlo noise)

@@ -25,7 +25,7 @@ flowchart LR
     RL -->|"estimators and allocators<br/>(plain callables)"| BT[backtest-lab]
     MS[microstructure-lab] -->|"calibrate_costs to SpreadImpactCost<br/>adapters/costs.py"| BT
     subgraph quant-stack
-      A[adapters, studies S1-S7, integration tests]
+      A[adapters, studies S1-S8, integration tests]
     end
 ```
 
@@ -54,6 +54,7 @@ asserts that the duplicates agree to 1e-12 on a grid of inputs and return the sa
 | [S5](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s5_skew_option_var.py) skew in option VaR | How much does the smile's behaviour under spot moves change option VaR? | Sticky moneyness more than doubles a short straddle's 1-day VaR against sticky strike (0.82 vs 0.38 synthetic, 0.84 vs 0.32 SPX) |
 | [S6](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s6_autocallable_investors.py) how did autocallable investors do? | A SPY Phoenix issued monthly since 2005 at a model fair value of 98: what did investors actually receive? | Realised cash flows were worth 101.20 at the issue rate, +3.20 ± 0.72 (Newey-West) above the model. 94% autocalled, none lost capital, and the excess return over the 3-year rate was +1.1% ± 0.7% a year |
 | [S7](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s7_market_maker_risk.py) market-maker inventory risk | How bad is a bad session for an Avellaneda–Stoikov quoter in the order book, and do standard VaR models know? | Symmetric quotes earn 46–65% more but carry 5–13× the 97.5% ES. Normal VaR fails 4 of 6 books (32–47 exceptions against 15), and RiskMetrics EWMA finds none on the inventory books because it assumes zero-mean P&L. Historical and FHS pass |
+| [S8](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s8_estimated_value.py) issuers' estimated value | What does a real note's published "estimated value" imply, priced off that day's surfaces? | Two Citigroup SPX/NDX autocallables priced 2026-10-30: the model reproduces the $13.20 gap between their estimated values to within $0.83, but values both notes about $13 **below** Citi's estimate, so the implied funding spread is negative (−98 to −110 bp over Treasuries) |
 
 Each study prints its tables to [`docs/`](https://github.com/hossainyousuf751/quant-stack/tree/main/docs) (`s*_output.txt`, plus plots). All seeds are fixed.
 
@@ -158,6 +159,31 @@ risk-lab measures each P&L series and backtests its four VaR models over the las
 In the paper's own fill model, not one of 2,500 sessions loses money (the worst is +43), so a loss VaR
 there is meaningless. Losses come from the order book's queue position and adverse selection.
 
+### S8: what does the issuer's estimated value imply?
+
+US issuers state an *estimated value* in every final pricing supplement (form 424B2 on SEC EDGAR): the
+note's worth on their own models, discounted at their internal funding rate. S8 prices real notes with
+the stack and compares. Terms are entered by hand from the filings into
+[`studies/s8_notes/notes.csv`](https://github.com/hossainyousuf751/quant-stack/blob/main/studies/s8_notes/notes.csv), each row linking its filing; there is no
+document parsing. The surfaces are that day's SPX/NDX SSVI fits, and their spots equal the notes'
+initial levels to the cent.
+
+The first two notes are a natural experiment. Citigroup priced them the same day with the same
+structure: worst-of NDX and SPX, quarterly to 2029, 70% coupon and final barriers, autocall at 100% from
+the second date. Only the coupon and the fee differ.
+
+| Citigroup, priced 2026-10-30 | Coupon | Fee | Estimated value | Local vol | Flat ATM vol | At Treasury rates | Implied spread over Treasuries |
+|---|---|---|---|---|---|---|---|
+| [034243]({https://www.sec.gov/Archives/edgar/data/831001/000191870426034243/form424b2.htm}) | 8.00% | $15.00 | **968.60** | 954.78 ± 0.60 | 980.48 | 959.03 | **−110 bp** |
+| [034250]({https://www.sec.gov/Archives/edgar/data/831001/000191870426034250/form424b2.htm}) | 9.85% | none | **981.80** | 968.81 ± 0.61 | 999.54 | 973.12 | **−98 bp** |
+
+- **The model passes the check that needs no funding assumption.** The estimated values differ by
+  $13.20 and our fair values by $14.03, on common paths.
+- **The implied funding spread is negative.** Citi's estimate is about $13 above our local-vol value
+  at the option-implied rate (4.96%), and about $9 above it at Treasury rates (4.31%).
+- **Citi's estimate falls between our local-vol and flat-vol values.** Correlation moves the result
+  by about ±4–5 per ±0.05 around the realised 0.923.
+
 ## What was surprising, what went wrong, and how it was diagnosed
 
 **S1: a "skew-aware" flat vol overshoots.** Pricing the note with flat vol taken at the barrier
@@ -245,6 +271,30 @@ low draw, about 3.5 standard errors under the mean. Inventory control costs 32�
 the 33–45% it published; the conclusion is unchanged. microstructure-lab v0.3.1 now runs its
 Study 4 with 2,500 episodes per row, and its table shows these values.
 
+**S8: the issuer valued its notes above my model, and the sign was the surprise.** Issuers discount
+at their own funding rate, above the risk-free rate, so I expected our fair value above Citi's
+estimate. It came out below. Before reporting that, I ruled out three causes:
+- **Wrong inputs.** The surfaces' spots equal the notes' initial levels. Both surfaces have listed
+  options out to 3.14 years, past the 3.0-year maturity, so the long end is fitted, not extrapolated.
+- **A model bug.** The coupon difference, the one comparison that needs no funding assumption, matches
+  to within $0.83.
+- **The discount rate.** The 4.96% three-year rate comes from SPX put-call parity. Option-implied
+  rates trade above government rates, here by 65 bp. That explains about $4 of the $13 gap, not all
+  of it.
+
+What remains is model risk in the embedded down-and-in worst-of put. Local vol with realised
+correlation values that put about 0.9–1.0% of notional higher than Citi's model does when both are
+discounted at Treasury rates. At a typical positive funding spread the gap would be larger, about
+1.5–2%. Citi's estimate falls between our local-vol and flat-vol values. A stochastic-local-vol
+model, higher implied correlation or different skew dynamics would each move our value that way. I
+can't tell which from two notes, both from one issuer on one day. Notes priced from 2026-11-13 add
+RUT and other issuers, which will show whether this is a Citi effect or a model effect.
+
+Getting the market data reliably also took three attempts. Yahoo silently returned an empty RUT
+column one run, then an empty S&P 500 column, then an empty 13-week bill column. The first fix
+cached the gap, which `Market` then rejected as a NaN correlation. The loader now retries up to three
+times and never caches an incomplete download.
+
 **Testing across versions.** The libraries promise numpy ≥ 1.24, pandas ≥ 2.0 and scipy ≥ 1.10. I
 ran every suite in an environment with exactly those versions. Every test passed except my new
 regression pins: optimiser-fitted values move by up to 1e-5 relative between scipy 1.10 and 1.17,
@@ -316,6 +366,8 @@ What the studies need:
   `projects/volsurface/examples/snapshot.py`) for their real-data parts, and skip those parts without it.
 - **S4** uses microstructure-lab's Binance recordings, likewise git-ignored and created with its recorder.
 - **S7** is fully offline (simulated order book), about 7 minutes.
+- **S8** uses the fitted surfaces committed in `studies/s8_notes/surfaces/` and downloads index and
+  Treasury history from Yahoo once (cached in `data/`). About 1.5 minutes.
 - **S3, S4 and S6** download Yahoo Finance prices on first run and cache them in `data/`. They skip those
   parts when offline.
 
@@ -328,7 +380,7 @@ quant-stack/
 ├── projects/          the five libraries (git submodules, tagged releases)
 ├── src/quantstack/
 │   └── adapters/      surface.py (Link A), notes.py (Link B), costs.py (Link D)
-├── studies/           S1-S7
+├── studies/           S1-S8
 ├── tests/             consistency and integration tests
 └── docs/              study outputs and plots; profile_README.md
 ```

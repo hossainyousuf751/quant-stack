@@ -13,7 +13,7 @@ requires-python = ">=3.10"
 # The five libraries are pre-1.0, so each is capped below its next minor version: a minor release may
 # change an API the adapters use. In a clone, CI installs them from projects/ (git submodules) first.
 dependencies = [
-    "sppricer>=0.2.1,<0.4",
+    "sppricer>=0.2.1,<0.5",
     "volsurface-lab>=0.2.1,<0.3",
     "btlab>=0.4.0,<0.5",
     "lobkit>=0.3.0,<0.4",
